@@ -10,7 +10,7 @@ import {
   Dimensions,
   SafeAreaView,
 } from 'react-native';
-import SignatureCanvas from 'react-native-signature-canvas';
+import SignatureCanvas from '../components/SignatureCanvas';
 import * as Print from 'expo-print';
 import { useStore } from '../store';
 
@@ -162,9 +162,6 @@ export default function FirmaScreen({ navigation, route }: Props) {
             ref={sigRef}
             onOK={handleOK}
             onEmpty={() => setFirmaBase64(null)}
-            descriptionText=""
-            clearText="Limpiar"
-            confirmText="Confirmar firma"
             webStyle={`.m-signature-pad { box-shadow: none; border: none; } .m-signature-pad--body { border: none; } .m-signature-pad--footer .button { background-color: ${PRIMARY}; }`}
             style={styles.signature}
           />
