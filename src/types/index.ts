@@ -8,6 +8,7 @@ export interface Cliente {
   nombre: string;
   caballo: string;
   email: string;
+  telefono?: string;
 }
 
 export interface Sesion {

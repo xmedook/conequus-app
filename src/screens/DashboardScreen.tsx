@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,13 @@ export default function DashboardScreen({ navigation }: Props) {
   const clientes = useStore((s) => s.clientes);
   const logout = useStore((s) => s.logout);
   const userEmail = useStore((s) => s.auth.userEmail);
+  const fetchClientes = useStore((s) => s.fetchClientes);
+  const fetchSesiones = useStore((s) => s.fetchSesiones);
+
+  useEffect(() => {
+    fetchClientes();
+    fetchSesiones();
+  }, []);
 
   const total = sesiones.length;
   const pendientes = sesiones.filter((s) => s.status === 'Pendiente').length;

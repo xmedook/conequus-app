@@ -26,6 +26,7 @@ interface Props {
 export default function NuevaSesionScreen({ navigation }: Props) {
   const clientes = useStore((s) => s.clientes);
   const addSesion = useStore((s) => s.addSesion);
+  const crearSesion = useStore((s) => s.crearSesion);
 
   const [clienteId, setClienteId] = useState('');
   const [modalidad, setModalidad] = useState<Modalidad>('Presencial');
@@ -71,7 +72,14 @@ export default function NuevaSesionScreen({ navigation }: Props) {
         horaFinal = h;
       }
 
-      addSesion({ clienteId, modalidad, tipoSesion, fecha: fechaFinal, hora: horaFinal });
+      // Build ISO timestamp for DB
+      const fechaHora = `${fechaFinal}T${horaFinal}:00`;
+      await crearSesion({
+        cliente_id: clienteId,
+        modalidad,
+        tipo_sesion: tipoSesion,
+        fecha_hora: fechaHora,
+      });
 
       Alert.alert(
         '✅ Sesión creada',

@@ -1,54 +1,6 @@
 import { create } from 'zustand';
+import { supabase } from '../lib/supabase';
 import { AuthState, Cliente, Sesion, SessionStatus, EstadoSeguimiento } from '../types';
-
-const MOCK_CLIENTES: Cliente[] = [
-  { id: 'c1', nombre: 'Valentina Torres', caballo: 'Relámpago', email: 'valentina@example.com' },
-  { id: 'c2', nombre: 'Diego Hernández', caballo: 'Luna de Plata', email: 'diego@example.com' },
-  { id: 'c3', nombre: 'Sofía Ramírez', caballo: 'Viento Norte', email: 'sofia@example.com' },
-];
-
-const MOCK_SESIONES: Sesion[] = [
-  {
-    id: 's1',
-    clienteId: 'c1',
-    modalidad: 'Presencial',
-    tipoSesion: 'Evaluación inicial',
-    fecha: '2025-07-10',
-    hora: '09:00',
-    status: 'Pendiente',
-    estado: 'En proceso',
-    autorizacionFotos: true,
-    observaciones: 'Primera sesión — buen ánimo',
-    notas: 'Revisar postura en trote',
-  },
-  {
-    id: 's2',
-    clienteId: 'c2',
-    modalidad: 'Virtual',
-    tipoSesion: 'Seguimiento',
-    fecha: '2025-07-08',
-    hora: '11:00',
-    status: 'Firmada',
-    estado: 'Completado',
-    autorizacionFotos: false,
-    observaciones: 'Muy buena sesión, avance notable',
-    notas: '',
-    firmaBase64: 'mock_firma',
-  },
-  {
-    id: 's3',
-    clienteId: 'c3',
-    modalidad: 'Híbrida',
-    tipoSesion: 'Cierre',
-    fecha: '2025-07-15',
-    hora: '14:30',
-    status: 'Pendiente',
-    estado: 'Reprogramado',
-    autorizacionFotos: true,
-    observaciones: '',
-    notas: 'Reprogramar por lluvia',
-  },
-];
 
 interface AppState {
   // Auth
@@ -58,12 +10,21 @@ interface AppState {
 
   // Clientes
   clientes: Cliente[];
+  fetchClientes: () => Promise<void>;
 
   // Sesiones
   sesiones: Sesion[];
-  addSesion: (sesion: Omit<Sesion, 'id' | 'status'>) => string;
+  fetchSesiones: () => Promise<void>;
+  addSesion: (sesion: Omit<Sesion, 'id' | 'status'>) => Promise<string>;
+  crearSesion: (sesion: {
+    cliente_id: string;
+    modalidad: string;
+    tipo_sesion: string;
+    fecha_hora: string;
+  }) => Promise<string>;
   updateSesionStatus: (id: string, status: SessionStatus) => void;
   updateSesionFirma: (id: string, firmaBase64: string, pdfUri?: string) => void;
+  actualizarSesion: (id: string, updates: Record<string, any>) => Promise<void>;
   updateSesionSeguimiento: (
     id: string,
     data: {
@@ -73,15 +34,61 @@ interface AppState {
       notas?: string;
     }
   ) => void;
+  guardarSeguimiento: (seguimiento: {
+    sesion_id: string;
+    estado?: string;
+    autoriza_fotos?: boolean;
+    observaciones?: string;
+    notas_progreso?: string;
+  }) => Promise<void>;
   getSesionById: (id: string) => Sesion | undefined;
   getClienteById: (id: string) => Cliente | undefined;
+}
+
+// Map DB row -> Sesion type
+function mapDbSesion(row: any): Sesion {
+  const fechaHora = row.fecha_hora ? new Date(row.fecha_hora) : new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const fecha = `${fechaHora.getFullYear()}-${pad(fechaHora.getMonth() + 1)}-${pad(fechaHora.getDate())}`;
+  const hora = `${pad(fechaHora.getHours())}:${pad(fechaHora.getMinutes())}`;
+
+  const status: SessionStatus =
+    row.carta_responsiva_estado === 'firmada' ? 'Firmada' : 'Pendiente';
+
+  return {
+    id: row.id,
+    clienteId: row.cliente_id ?? '',
+    modalidad: row.modalidad as any,
+    tipoSesion: row.tipo_sesion as any,
+    fecha,
+    hora,
+    status,
+    estado: row.estado as EstadoSeguimiento,
+    autorizacionFotos: false,
+    observaciones: '',
+    notas: '',
+    firmaBase64: row.firma_url ?? undefined,
+    pdfUri: row.carta_responsiva_url ?? undefined,
+    // keep raw DB fields for Supabase ops
+    _dbRow: row,
+  } as Sesion & { _dbRow: any };
+}
+
+// Map DB row -> Cliente type
+function mapDbCliente(row: any): Cliente {
+  return {
+    id: row.id,
+    nombre: row.nombre,
+    caballo: '', // DB doesn't have caballo field
+    email: row.email,
+    telefono: row.telefono,
+  };
 }
 
 export const useStore = create<AppState>((set, get) => ({
   auth: { isAuthenticated: false, userEmail: null },
 
   login: (email: string, _password: string) => {
-    // Mock auth — any credentials work
     set({ auth: { isAuthenticated: true, userEmail: email } });
     return true;
   },
@@ -90,23 +97,59 @@ export const useStore = create<AppState>((set, get) => ({
     set({ auth: { isAuthenticated: false, userEmail: null } });
   },
 
-  clientes: MOCK_CLIENTES,
+  clientes: [],
 
-  sesiones: MOCK_SESIONES,
+  fetchClientes: async () => {
+    const { data, error } = await supabase.from('clientes').select('*').order('nombre');
+    if (error) {
+      console.error('fetchClientes error:', error);
+      return;
+    }
+    if (data) set({ clientes: data.map(mapDbCliente) });
+  },
 
-  addSesion: (sesionData) => {
-    const id = `s_${Date.now()}`;
-    const newSesion: Sesion = {
-      ...sesionData,
-      id,
-      status: 'Pendiente',
-      estado: 'En proceso',
-      autorizacionFotos: false,
-      observaciones: '',
-      notas: '',
-    };
-    set((state) => ({ sesiones: [newSesion, ...state.sesiones] }));
-    return id;
+  sesiones: [],
+
+  fetchSesiones: async () => {
+    const { data, error } = await supabase
+      .from('sesiones')
+      .select('*, clientes(*)')
+      .order('fecha_hora', { ascending: false });
+    if (error) {
+      console.error('fetchSesiones error:', error);
+      return;
+    }
+    if (data) set({ sesiones: data.map(mapDbSesion) });
+  },
+
+  // Legacy local-only addSesion kept for compatibility — now calls crearSesion
+  addSesion: async (sesionData) => {
+    const { fecha, hora, clienteId, modalidad, tipoSesion } = sesionData as any;
+    const fechaHora = `${fecha}T${hora}:00`;
+    return get().crearSesion({
+      cliente_id: clienteId,
+      modalidad,
+      tipo_sesion: tipoSesion,
+      fecha_hora: fechaHora,
+    });
+  },
+
+  crearSesion: async (sesion) => {
+    const { data, error } = await supabase
+      .from('sesiones')
+      .insert(sesion)
+      .select()
+      .single();
+    if (error) {
+      console.error('crearSesion error:', error);
+      return '';
+    }
+    if (data) {
+      const mapped = mapDbSesion(data);
+      set((state) => ({ sesiones: [mapped, ...state.sesiones] }));
+      return data.id;
+    }
+    return '';
   },
 
   updateSesionStatus: (id, status) => {
@@ -123,10 +166,30 @@ export const useStore = create<AppState>((set, get) => ({
     }));
   },
 
+  actualizarSesion: async (id, updates) => {
+    const { error } = await supabase.from('sesiones').update(updates).eq('id', id);
+    if (error) {
+      console.error('actualizarSesion error:', error);
+      return;
+    }
+    set((state) => ({
+      sesiones: state.sesiones.map((s) =>
+        s.id === id ? { ...s, ...updates, status: updates.carta_responsiva_estado === 'firmada' ? 'Firmada' : s.status } : s
+      ),
+    }));
+  },
+
   updateSesionSeguimiento: (id, data) => {
     set((state) => ({
       sesiones: state.sesiones.map((s) => (s.id === id ? { ...s, ...data } : s)),
     }));
+  },
+
+  guardarSeguimiento: async (seguimiento) => {
+    const { error } = await supabase.from('seguimientos').insert(seguimiento);
+    if (error) {
+      console.error('guardarSeguimiento error:', error);
+    }
   },
 
   getSesionById: (id) => get().sesiones.find((s) => s.id === id),

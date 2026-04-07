@@ -13,6 +13,7 @@ import {
 import SignatureCanvas from '../components/SignatureCanvas';
 import * as Print from 'expo-print';
 import { useStore } from '../store';
+import { supabase } from '../lib/supabase';
 
 const PRIMARY = '#0D9488';
 
@@ -26,6 +27,7 @@ export default function FirmaScreen({ navigation, route }: Props) {
   const sesion = useStore((s) => s.getSesionById(sesionId));
   const cliente = useStore((s) => (sesion ? s.getClienteById(sesion.clienteId) : undefined));
   const updateSesionFirma = useStore((s) => s.updateSesionFirma);
+  const actualizarSesion = useStore((s) => s.actualizarSesion);
 
   const sigRef = useRef<any>(null);
   const [firmaBase64, setFirmaBase64] = useState<string | null>(null);
@@ -101,6 +103,30 @@ export default function FirmaScreen({ navigation, route }: Props) {
         const result = await Print.printToFileAsync({ html });
         pdfUri = result.uri;
       }
+
+      // Upload signature to Supabase Storage
+      let firmaUrl: string | undefined;
+      try {
+        const blob = await fetch(firmaBase64).then((r) => r.blob());
+        const fileName = `firma-${sesionId}-${Date.now()}.png`;
+        const { error: uploadError } = await supabase.storage
+          .from('firmas')
+          .upload(fileName, blob, { contentType: 'image/png', upsert: true });
+        if (!uploadError) {
+          firmaUrl = supabase.storage.from('firmas').getPublicUrl(fileName).data.publicUrl;
+        } else {
+          console.warn('Storage upload error:', uploadError.message);
+        }
+      } catch (storageErr) {
+        console.warn('Storage upload failed:', storageErr);
+      }
+
+      // Update sesion in Supabase with firma_url and estado
+      await actualizarSesion(sesionId, {
+        firma_url: firmaUrl ?? firmaBase64,
+        carta_responsiva_estado: 'firmada',
+        ...(pdfUri ? { carta_responsiva_url: pdfUri } : {}),
+      });
 
       updateSesionFirma(sesionId, firmaBase64, pdfUri ?? '');
 
