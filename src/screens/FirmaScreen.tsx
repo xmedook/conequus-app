@@ -7,15 +7,14 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
-  Dimensions,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import SignatureCanvas from '../components/SignatureCanvas';
 import * as Print from 'expo-print';
 import { useStore } from '../store';
 
 const PRIMARY = '#0D9488';
-const { width } = Dimensions.get('window');
 
 interface Props {
   navigation: any;
@@ -64,7 +63,7 @@ export default function FirmaScreen({ navigation, route }: Props) {
 
   const handleConfirmar = async () => {
     if (!firmaBase64) {
-      Alert.alert('Firma requerida', 'Por favor firma la carta antes de confirmar');
+      Alert.alert('Firma requerida', 'Por favor firma la carta antes de confirmar.');
       return;
     }
 
@@ -96,14 +95,24 @@ export default function FirmaScreen({ navigation, route }: Props) {
         </html>
       `;
 
-      const { uri } = await Print.printToFileAsync({ html });
-      updateSesionFirma(sesionId, firmaBase64, uri);
+      // expo-print not available on web; only generate PDF on native
+      let pdfUri: string | undefined;
+      if (Platform.OS !== 'web') {
+        const result = await Print.printToFileAsync({ html });
+        pdfUri = result.uri;
+      }
 
-      Alert.alert('✅ Carta firmada', 'La sesión ha sido marcada como Firmada y el PDF fue generado.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo generar el PDF');
+      updateSesionFirma(sesionId, firmaBase64, pdfUri ?? '');
+
+      Alert.alert(
+        '✅ Carta firmada',
+        Platform.OS === 'web'
+          ? 'La sesión ha sido marcada como Firmada.'
+          : 'La sesión ha sido marcada como Firmada y el PDF fue generado.',
+        [{ text: 'Aceptar', onPress: () => navigation.goBack() }]
+      );
+    } catch {
+      Alert.alert('Error', 'No se pudo completar la firma. Intenta de nuevo.');
     } finally {
       setGenerando(false);
     }
@@ -121,8 +130,12 @@ export default function FirmaScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Carta */}
+      {/* Carta responsiva — scrollable, fixed max height */}
+      <ScrollView
+        style={styles.cartaScroll}
+        contentContainerStyle={styles.cartaContent}
+        showsVerticalScrollIndicator
+      >
         <View style={styles.carta}>
           <Text style={styles.cartaTitulo}>Carta Responsiva</Text>
           <Text style={styles.cartaSubtitulo}>Sesión de Coaching Ecuestre</Text>
@@ -141,7 +154,9 @@ export default function FirmaScreen({ navigation, route }: Props) {
           </View>
           <View style={styles.cartaRow}>
             <Text style={styles.cartaLabel}>Fecha:</Text>
-            <Text style={styles.cartaValue}>{sesion.fecha} {sesion.hora}</Text>
+            <Text style={styles.cartaValue}>
+              {sesion.fecha} {sesion.hora}
+            </Text>
           </View>
 
           <Text style={styles.cartaTexto}>
@@ -149,14 +164,19 @@ export default function FirmaScreen({ navigation, route }: Props) {
             práctica de la equitación y el coaching ecuestre. Me comprometo a seguir las
             instrucciones del coach en todo momento y acepto la responsabilidad de mi
             participación.{'\n\n'}
-            Exonero a <Text style={{ fontWeight: '700' }}>Conequus Coaching Ecuestre</Text> de
-            cualquier responsabilidad derivada de accidentes durante la sesión, conforme a los
-            protocolos de seguridad establecidos.
+            Exonero a{' '}
+            <Text style={{ fontWeight: '700' }}>Conequus Coaching Ecuestre</Text> de cualquier
+            responsabilidad derivada de accidentes durante la sesión, conforme a los protocolos
+            de seguridad establecidos.
           </Text>
         </View>
+      </ScrollView>
 
-        {/* Firma canvas */}
-        <Text style={styles.sectionLabel}>Firma del jinete</Text>
+      {/* Signature canvas — fills remaining space */}
+      <View style={styles.signatureSection}>
+        <Text style={styles.sectionLabel}>
+          {firmaBase64 ? '✅ Firma capturada' : 'Dibuja tu firma abajo'}
+        </Text>
         <View style={styles.signatureContainer}>
           <SignatureCanvas
             ref={sigRef}
@@ -166,40 +186,43 @@ export default function FirmaScreen({ navigation, route }: Props) {
             style={styles.signature}
           />
         </View>
-        <Text style={styles.signatureHint}>
-          {firmaBase64 ? '✅ Firma capturada' : 'Dibuja tu firma arriba'}
-        </Text>
+      </View>
 
-        {/* Botones */}
-        <View style={styles.btnRow}>
-          <TouchableOpacity style={styles.btnLimpiar} onPress={handleClear}>
-            <Text style={styles.btnLimpiarText}>🗑 Limpiar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.btnConfirmar, (!firmaBase64 || generando) && { opacity: 0.6 }]}
-            onPress={handleConfirmar}
-            disabled={!firmaBase64 || generando}
-          >
-            {generando ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.btnConfirmarText}>✅ Confirmar y generar PDF</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+      {/* Buttons — always visible at bottom */}
+      <View style={styles.bottomBar}>
+        <TouchableOpacity
+          style={styles.btnLimpiar}
+          onPress={handleClear}
+          disabled={generando}
+        >
+          <Text style={styles.btnLimpiarText}>🗑 Limpiar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.btnConfirmar, (!firmaBase64 || generando) && styles.btnDisabled]}
+          onPress={handleConfirmar}
+          disabled={!firmaBase64 || generando}
+        >
+          {generando ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.btnConfirmarText}>✅ Confirmar</Text>
+          )}
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
-  scroll: { padding: 16, paddingBottom: 40 },
+
+  // Carta section — max height so canvas is always visible
+  cartaScroll: { maxHeight: 220, flexGrow: 0 },
+  cartaContent: { padding: 16 },
   carta: {
     backgroundColor: '#fff',
     borderRadius: 14,
-    padding: 20,
-    marginBottom: 20,
+    padding: 16,
     borderLeftWidth: 4,
     borderLeftColor: PRIMARY,
     shadowColor: '#000',
@@ -208,20 +231,28 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  cartaTitulo: { fontSize: 18, fontWeight: '800', color: PRIMARY, textAlign: 'center' },
-  cartaSubtitulo: { fontSize: 13, color: '#64748B', textAlign: 'center', marginBottom: 16 },
-  cartaRow: { flexDirection: 'row', marginBottom: 6 },
-  cartaLabel: { fontSize: 13, color: '#64748B', width: 70 },
-  cartaValue: { fontSize: 13, color: '#1E293B', fontWeight: '600', flex: 1 },
-  cartaTexto: { fontSize: 13, color: '#475569', lineHeight: 20, marginTop: 14 },
+  cartaTitulo: { fontSize: 16, fontWeight: '800', color: PRIMARY, textAlign: 'center' },
+  cartaSubtitulo: { fontSize: 12, color: '#64748B', textAlign: 'center', marginBottom: 12 },
+  cartaRow: { flexDirection: 'row', marginBottom: 4 },
+  cartaLabel: { fontSize: 12, color: '#64748B', width: 65 },
+  cartaValue: { fontSize: 12, color: '#1E293B', fontWeight: '600', flex: 1 },
+  cartaTexto: { fontSize: 12, color: '#475569', lineHeight: 18, marginTop: 10 },
+
+  // Signature section — fills remaining space between carta and buttons
+  signatureSection: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
   sectionLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#374151',
-    marginBottom: 10,
+    marginBottom: 6,
+    textAlign: 'center',
   },
   signatureContainer: {
-    height: 220,
+    flex: 1,
     borderWidth: 2,
     borderColor: '#CBD5E1',
     borderRadius: 14,
@@ -229,14 +260,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   signature: { flex: 1 },
-  signatureHint: {
-    textAlign: 'center',
-    color: '#64748B',
-    fontSize: 12,
-    marginTop: 8,
-    marginBottom: 16,
+
+  // Bottom bar — always visible, never scrolled away
+  bottomBar: {
+    flexDirection: 'row',
+    gap: 10,
+    padding: 16,
+    paddingBottom: 20,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 8,
   },
-  btnRow: { flexDirection: 'row', gap: 10 },
   btnLimpiar: {
     flex: 1,
     paddingVertical: 14,
@@ -254,4 +293,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   btnConfirmarText: { color: '#fff', fontWeight: '700' },
+  btnDisabled: { opacity: 0.5 },
 });

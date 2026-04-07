@@ -8,6 +8,8 @@ import {
   TextInput,
   Alert,
   SafeAreaView,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useStore } from '../store';
 import { Modalidad, TipoSesion } from '../types';
@@ -28,58 +30,98 @@ export default function NuevaSesionScreen({ navigation }: Props) {
   const [clienteId, setClienteId] = useState('');
   const [modalidad, setModalidad] = useState<Modalidad>('Presencial');
   const [tipoSesion, setTipoSesion] = useState<TipoSesion>('Evaluación inicial');
+
+  // For web: use a single datetime-local string; for native: separate text fields
+  const now = new Date();
+  const padded = (n: number) => String(n).padStart(2, '0');
+  const defaultDatetime = `${now.getFullYear()}-${padded(now.getMonth() + 1)}-${padded(now.getDate())}T${padded(now.getHours())}:${padded(now.getMinutes())}`;
+  const [datetimeWeb, setDatetimeWeb] = useState(defaultDatetime);
   const [fecha, setFecha] = useState('');
   const [hora, setHora] = useState('');
 
-  const handleGuardar = () => {
-    if (!clienteId) {
-      Alert.alert('Error', 'Selecciona un cliente');
-      return;
-    }
-    if (!fecha.trim()) {
-      Alert.alert('Error', 'Ingresa la fecha (YYYY-MM-DD)');
-      return;
-    }
-    if (!hora.trim()) {
-      Alert.alert('Error', 'Ingresa la hora (HH:MM)');
-      return;
+  const [guardando, setGuardando] = useState(false);
+  const [errores, setErrores] = useState<Record<string, string>>({});
+
+  const validar = () => {
+    const nuevosErrores: Record<string, string> = {};
+    if (!clienteId) nuevosErrores.cliente = 'Selecciona un cliente para continuar.';
+
+    if (Platform.OS === 'web') {
+      if (!datetimeWeb) nuevosErrores.fecha = 'Selecciona la fecha y hora de la sesión.';
+    } else {
+      if (!fecha.trim()) nuevosErrores.fecha = 'Ingresa la fecha (YYYY-MM-DD).';
+      if (!hora.trim()) nuevosErrores.hora = 'Ingresa la hora (HH:MM).';
     }
 
-    const id = addSesion({ clienteId, modalidad, tipoSesion, fecha, hora });
-    Alert.alert('✅ Sesión creada', 'La sesión fue guardada correctamente', [
-      { text: 'OK', onPress: () => navigation.goBack() },
-    ]);
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  };
+
+  const handleGuardar = async () => {
+    if (!validar()) return;
+
+    setGuardando(true);
+    try {
+      let fechaFinal = fecha;
+      let horaFinal = hora;
+
+      if (Platform.OS === 'web' && datetimeWeb) {
+        const [f, h] = datetimeWeb.split('T');
+        fechaFinal = f;
+        horaFinal = h;
+      }
+
+      addSesion({ clienteId, modalidad, tipoSesion, fecha: fechaFinal, hora: horaFinal });
+
+      Alert.alert(
+        '✅ Sesión creada',
+        'La sesión fue guardada correctamente.',
+        [{ text: 'Aceptar', onPress: () => navigation.goBack() }]
+      );
+    } catch {
+      Alert.alert('Error', 'No se pudo guardar la sesión. Intenta de nuevo.');
+    } finally {
+      setGuardando(false);
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Nueva Sesión</Text>
 
-        {/* Cliente picker */}
+        {/* Cliente selector */}
         <Text style={styles.label}>Cliente</Text>
-        <View style={styles.optionsRow}>
-          {clientes.map((c) => (
-            <TouchableOpacity
-              key={c.id}
-              style={[styles.optionBtn, clienteId === c.id && styles.optionBtnActive]}
-              onPress={() => setClienteId(c.id)}
-            >
-              <Text
-                style={[styles.optionText, clienteId === c.id && styles.optionTextActive]}
-                numberOfLines={1}
+        {clientes.length === 0 ? (
+          <Text style={styles.emptyMsg}>No hay clientes registrados.</Text>
+        ) : (
+          <View style={styles.optionsRow}>
+            {clientes.map((c) => (
+              <TouchableOpacity
+                key={c.id}
+                style={[styles.optionBtn, clienteId === c.id && styles.optionBtnActive]}
+                onPress={() => {
+                  setClienteId(c.id);
+                  setErrores((prev) => ({ ...prev, cliente: '' }));
+                }}
               >
-                {c.nombre}
-              </Text>
-              <Text
-                style={[styles.optionSubtext, clienteId === c.id && styles.optionSubtextActive]}
-                numberOfLines={1}
-              >
-                🐴 {c.caballo}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+                <Text
+                  style={[styles.optionText, clienteId === c.id && styles.optionTextActive]}
+                  numberOfLines={1}
+                >
+                  {c.nombre}
+                </Text>
+                <Text
+                  style={[styles.optionSubtext, clienteId === c.id && styles.optionSubtextActive]}
+                  numberOfLines={1}
+                >
+                  🐴 {c.caballo}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+        {!!errores.cliente && <Text style={styles.errorText}>{errores.cliente}</Text>}
 
         {/* Modalidad */}
         <Text style={styles.label}>Modalidad</Text>
@@ -109,33 +151,82 @@ export default function NuevaSesionScreen({ navigation }: Props) {
           ))}
         </View>
 
-        {/* Fecha */}
-        <Text style={styles.label}>Fecha</Text>
-        <TextInput
-          style={styles.input}
-          value={fecha}
-          onChangeText={setFecha}
-          placeholder="2025-07-15"
-          placeholderTextColor="#94A3B8"
-        />
+        {/* Fecha y hora — web usa datetime-local, nativo usa TextInput */}
+        {Platform.OS === 'web' ? (
+          <>
+            <Text style={styles.label}>Fecha y hora</Text>
+            {/* @ts-ignore — HTML input only on web */}
+            <input
+              type="datetime-local"
+              value={datetimeWeb}
+              onChange={(e: any) => {
+                setDatetimeWeb(e.target.value);
+                setErrores((prev) => ({ ...prev, fecha: '' }));
+              }}
+              style={{
+                padding: 12,
+                borderRadius: 8,
+                border: errores.fecha ? '1.5px solid #EF4444' : '1px solid #CBD5E1',
+                fontSize: 16,
+                width: '100%',
+                color: '#1e293b',
+                backgroundColor: 'white',
+                boxSizing: 'border-box',
+                outline: 'none',
+                accentColor: PRIMARY,
+              }}
+            />
+            {!!errores.fecha && <Text style={styles.errorText}>{errores.fecha}</Text>}
+          </>
+        ) : (
+          <>
+            <Text style={styles.label}>Fecha</Text>
+            <TextInput
+              style={[styles.input, !!errores.fecha && styles.inputError]}
+              value={fecha}
+              onChangeText={(v) => {
+                setFecha(v);
+                setErrores((prev) => ({ ...prev, fecha: '' }));
+              }}
+              placeholder="2025-07-15"
+              placeholderTextColor="#94A3B8"
+            />
+            {!!errores.fecha && <Text style={styles.errorText}>{errores.fecha}</Text>}
 
-        {/* Hora */}
-        <Text style={styles.label}>Hora</Text>
-        <TextInput
-          style={styles.input}
-          value={hora}
-          onChangeText={setHora}
-          placeholder="10:00"
-          placeholderTextColor="#94A3B8"
-        />
+            <Text style={styles.label}>Hora</Text>
+            <TextInput
+              style={[styles.input, !!errores.hora && styles.inputError]}
+              value={hora}
+              onChangeText={(v) => {
+                setHora(v);
+                setErrores((prev) => ({ ...prev, hora: '' }));
+              }}
+              placeholder="10:00"
+              placeholderTextColor="#94A3B8"
+            />
+            {!!errores.hora && <Text style={styles.errorText}>{errores.hora}</Text>}
+          </>
+        )}
 
         {/* Botones */}
         <View style={styles.btnRow}>
-          <TouchableOpacity style={styles.btnCancel} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.btnCancel}
+            onPress={() => navigation.goBack()}
+            disabled={guardando}
+          >
             <Text style={styles.btnCancelText}>Cancelar</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.btnSave} onPress={handleGuardar}>
-            <Text style={styles.btnSaveText}>Guardar sesión</Text>
+          <TouchableOpacity
+            style={[styles.btnSave, guardando && { opacity: 0.7 }]}
+            onPress={handleGuardar}
+            disabled={guardando}
+          >
+            {guardando ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.btnSaveText}>Guardar sesión</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -148,6 +239,7 @@ const styles = StyleSheet.create({
   scroll: { padding: 20, paddingBottom: 40 },
   title: { fontSize: 22, fontWeight: '800', color: '#1E293B', marginBottom: 20 },
   label: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 8, marginTop: 16 },
+  emptyMsg: { color: '#94A3B8', fontSize: 13, marginBottom: 8 },
   optionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   optionBtn: {
     flex: 1,
@@ -187,6 +279,8 @@ const styles = StyleSheet.create({
     color: '#1E293B',
     backgroundColor: '#fff',
   },
+  inputError: { borderColor: '#EF4444' },
+  errorText: { color: '#EF4444', fontSize: 12, marginTop: 4 },
   btnRow: { flexDirection: 'row', gap: 12, marginTop: 32 },
   btnCancel: {
     flex: 1,

@@ -9,6 +9,7 @@ import {
   ScrollView,
   SafeAreaView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useStore } from '../store';
 import { EstadoSeguimiento } from '../types';
@@ -35,6 +36,7 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
   );
   const [observaciones, setObservaciones] = useState(sesion?.observaciones ?? '');
   const [notas, setNotas] = useState(sesion?.notas ?? '');
+  const [guardando, setGuardando] = useState(false);
 
   const estadoColors: Record<EstadoSeguimiento, { bg: string; text: string; border: string }> = {
     'En proceso': { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' },
@@ -43,16 +45,23 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
     'Reprogramado': { bg: '#FFFBEB', text: '#92400E', border: '#FDE68A' },
   };
 
-  const handleGuardar = () => {
-    updateSesionSeguimiento(sesionId, {
-      estado,
-      autorizacionFotos,
-      observaciones,
-      notas,
-    });
-    Alert.alert('✅ Guardado', 'El seguimiento fue actualizado', [
-      { text: 'OK', onPress: () => navigation.goBack() },
-    ]);
+  const handleGuardar = async () => {
+    setGuardando(true);
+    try {
+      updateSesionSeguimiento(sesionId, {
+        estado,
+        autorizacionFotos,
+        observaciones,
+        notas,
+      });
+      Alert.alert('✅ Seguimiento guardado', 'El seguimiento fue actualizado correctamente.', [
+        { text: 'Aceptar', onPress: () => navigation.goBack() },
+      ]);
+    } catch {
+      Alert.alert('Error', 'No se pudo guardar el seguimiento. Intenta de nuevo.');
+    } finally {
+      setGuardando(false);
+    }
   };
 
   if (!sesion) {
@@ -150,8 +159,16 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
           <TouchableOpacity style={styles.btnCancelar} onPress={() => navigation.goBack()}>
             <Text style={styles.btnCancelarText}>Cancelar</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.btnGuardar} onPress={handleGuardar}>
-            <Text style={styles.btnGuardarText}>Guardar seguimiento</Text>
+          <TouchableOpacity
+            style={[styles.btnGuardar, guardando && { opacity: 0.7 }]}
+            onPress={handleGuardar}
+            disabled={guardando}
+          >
+            {guardando ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.btnGuardarText}>Guardar seguimiento</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
