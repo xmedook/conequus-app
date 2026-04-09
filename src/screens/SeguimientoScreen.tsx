@@ -47,11 +47,20 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
         observaciones,
         notas,
       });
-      Alert.alert('Seguimiento guardado', 'El seguimiento fue actualizado correctamente.', [
+
+      let detalles = `Cliente: ${cliente?.nombre}\nEstado: ${estado}\nAutorización Fotos: ${autorizacionFotos ? 'Sí' : 'No'}`;
+      if (observaciones.trim()) detalles += `\nObservaciones: ${observaciones.substring(0, 50)}${observaciones.length > 50 ? '...' : ''}`;
+      if (notas.trim()) detalles += `\nNotas: ${notas.substring(0, 50)}${notas.length > 50 ? '...' : ''}`;
+
+      Alert.alert('Seguimiento guardado exitosamente', detalles, [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
-    } catch {
-      Alert.alert('Error', 'No se pudo guardar el seguimiento.');
+    } catch (error) {
+      Alert.alert(
+        'Error al guardar',
+        `No se pudo guardar el seguimiento.\n\nDetalle: ${error instanceof Error ? error.message : 'Error desconocido'}`,
+        [{ text: 'Cerrar' }]
+      );
     } finally {
       setGuardando(false);
     }

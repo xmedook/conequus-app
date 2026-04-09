@@ -75,39 +75,61 @@ export default function NuevoClienteScreen({ navigation, route }: Props) {
       return;
     }
 
-    if (isEditing && clienteId) {
-      await actualizarCliente(clienteId, {
-        nombre: nombre.trim(),
-        email: email.trim(),
-        telefono: telefono.trim(),
-        instagram: instagram.trim() || undefined,
-        pais: pais.trim() || undefined,
-        fecha_nacimiento: fechaNacimiento.trim() || undefined,
-        contacto_emergencia_nombre: contactoEmergenciaNombre.trim() || undefined,
-        contacto_emergencia_telefono: contactoEmergenciaTelefono.trim() || undefined,
-      });
-      Alert.alert('Listo', 'Cliente actualizado correctamente', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
-    } else {
-      const id = await crearCliente({
-        nombre: nombre.trim(),
-        email: email.trim(),
-        telefono: telefono.trim(),
-        instagram: instagram.trim() || undefined,
-        pais: pais.trim() || undefined,
-        fecha_nacimiento: fechaNacimiento.trim() || undefined,
-        contacto_emergencia_nombre: contactoEmergenciaNombre.trim() || undefined,
-        contacto_emergencia_telefono: contactoEmergenciaTelefono.trim() || undefined,
-        caballo: '',
-      });
-      if (id) {
-        Alert.alert('Listo', 'Cliente creado correctamente', [
+    try {
+      if (isEditing && clienteId) {
+        await actualizarCliente(clienteId, {
+          nombre: nombre.trim(),
+          email: email.trim(),
+          telefono: telefono.trim(),
+          instagram: instagram.trim() || undefined,
+          pais: pais.trim() || undefined,
+          fecha_nacimiento: fechaNacimiento.trim() || undefined,
+          contacto_emergencia_nombre: contactoEmergenciaNombre.trim() || undefined,
+          contacto_emergencia_telefono: contactoEmergenciaTelefono.trim() || undefined,
+        });
+
+        let detalles = `Nombre: ${nombre}\nEmail: ${email}\nTeléfono: ${telefono}`;
+        if (instagram) detalles += `\nInstagram: ${instagram}`;
+        if (pais) detalles += `\nPaís: ${pais}`;
+        if (fechaNacimiento) detalles += `\nFecha Nacimiento: ${fechaNacimiento}`;
+        if (contactoEmergenciaNombre) detalles += `\nContacto Emergencia: ${contactoEmergenciaNombre}`;
+
+        Alert.alert('Cliente actualizado exitosamente', detalles, [
           { text: 'OK', onPress: () => navigation.goBack() },
         ]);
       } else {
-        Alert.alert('Error', 'No se pudo crear el cliente');
+        const id = await crearCliente({
+          nombre: nombre.trim(),
+          email: email.trim(),
+          telefono: telefono.trim(),
+          instagram: instagram.trim() || undefined,
+          pais: pais.trim() || undefined,
+          fecha_nacimiento: fechaNacimiento.trim() || undefined,
+          contacto_emergencia_nombre: contactoEmergenciaNombre.trim() || undefined,
+          contacto_emergencia_telefono: contactoEmergenciaTelefono.trim() || undefined,
+          caballo: '',
+        });
+
+        if (id) {
+          let detalles = `Nombre: ${nombre}\nEmail: ${email}\nTeléfono: ${telefono}`;
+          if (instagram) detalles += `\nInstagram: ${instagram}`;
+          if (pais) detalles += `\nPaís: ${pais}`;
+          if (fechaNacimiento) detalles += `\nFecha Nacimiento: ${fechaNacimiento}`;
+          if (contactoEmergenciaNombre) detalles += `\nContacto Emergencia: ${contactoEmergenciaNombre}`;
+
+          Alert.alert('Cliente creado exitosamente', detalles, [
+            { text: 'OK', onPress: () => navigation.goBack() },
+          ]);
+        } else {
+          Alert.alert('Error', 'No se pudo crear el cliente');
+        }
       }
+    } catch (error) {
+      Alert.alert(
+        'Error al guardar',
+        `No se pudo ${isEditing ? 'actualizar' : 'crear'} el cliente.\n\nDetalle: ${error instanceof Error ? error.message : 'Error desconocido'}`,
+        [{ text: 'Cerrar' }]
+      );
     }
   };
 

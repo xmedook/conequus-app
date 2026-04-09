@@ -180,15 +180,21 @@ export default function FirmaScreen({ navigation, route }: Props) {
 
       updateSesionFirma(sesionId, firmaBase64, pdfUri ?? '');
 
-      Alert.alert(
-        'Carta firmada',
+      const detalles = `Cliente: ${cliente?.nombre}\nTipo: ${sesion.tipoSesion}\nModalidad: ${sesion.modalidad}\nFecha: ${sesion.fecha} ${sesion.hora}\n\n${
         Platform.OS === 'web'
-          ? 'La sesión ha sido marcada como Firmada.'
-          : 'La sesión ha sido marcada como Firmada y el PDF fue generado.',
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
+          ? 'Firma guardada exitosamente.'
+          : 'Firma guardada y PDF generado.'
+      }`;
+
+      Alert.alert('Carta Responsiva firmada exitosamente', detalles, [
+        { text: 'OK', onPress: () => navigation.goBack() }
+      ]);
+    } catch (error) {
+      Alert.alert(
+        'Error al firmar',
+        `No se pudo completar la firma de la carta responsiva.\n\nDetalle: ${error instanceof Error ? error.message : 'Error desconocido'}`,
+        [{ text: 'Cerrar' }]
       );
-    } catch {
-      Alert.alert('Error', 'No se pudo completar la firma.');
     } finally {
       setGenerando(false);
     }

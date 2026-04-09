@@ -75,11 +75,21 @@ export default function NuevaSesionScreen({ navigation }: Props) {
         tipo_sesion: tipoSesion,
         fecha_hora: fechaHora,
       });
-      Alert.alert('Sesion creada', 'La sesion fue guardada correctamente.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
-    } catch {
-      Alert.alert('Error', 'No se pudo guardar la sesion.');
+
+      const clientes = useStore.getState().clientes;
+      const clienteNombre = clientes.find(c => c.id === clienteId)?.nombre || 'Cliente';
+
+      Alert.alert(
+        'Sesión creada exitosamente',
+        `Cliente: ${clienteNombre}\nTipo: ${tipoSesion}\nModalidad: ${modalidad}\nFecha: ${fechaFinal}\nHora: ${horaFinal}`,
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+    } catch (error) {
+      Alert.alert(
+        'Error al guardar',
+        `No se pudo crear la sesión.\n\nDetalle: ${error instanceof Error ? error.message : 'Error desconocido'}`,
+        [{ text: 'Cerrar' }]
+      );
     } finally {
       setGuardando(false);
     }
