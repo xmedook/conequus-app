@@ -268,17 +268,23 @@ export default function NuevaSesionScreen({ navigation }: Props) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        {renderScrollContent()}
-      </ScrollView>
-      {renderBottomBar()}
-    </SafeAreaView>
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+          {renderScrollContent()}
+        </ScrollView>
+      </SafeAreaView>
+      <SafeAreaView style={styles.bottomSafeArea}>
+        {renderBottomBar()}
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
+  safeArea: { flex: 1 },
+  bottomSafeArea: { backgroundColor: '#F2F2F7' },
   scrollView: { flex: 1 },
   scrollContent: { paddingBottom: 20 },
 
