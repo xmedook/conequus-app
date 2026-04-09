@@ -208,106 +208,107 @@ export default function FirmaScreen({ navigation, route }: Props) {
     );
   }
 
-  const renderContent = () => (
+  const renderScrollContent = () => (
     <>
       {/* Carta responsiva */}
-          <View style={styles.cartaSection}>
-            <View style={styles.carta}>
-              <Text style={styles.cartaTitulo}>Carta Responsiva</Text>
-              <Text style={styles.cartaSubtitulo}>Sesión de Coaching Ecuestre</Text>
+      <View style={styles.cartaSection}>
+        <View style={styles.carta}>
+          <Text style={styles.cartaTitulo}>Carta Responsiva</Text>
+          <Text style={styles.cartaSubtitulo}>Sesión de Coaching Ecuestre</Text>
 
-              <View style={styles.infoCard}>
-                <View style={styles.cartaRow}>
-                  <Text style={styles.cartaLabel}>Jinete</Text>
-                  <Text style={styles.cartaValue}>{cliente?.nombre}</Text>
-                </View>
-                <View style={styles.separator} />
-                <View style={styles.cartaRow}>
-                  <Text style={styles.cartaLabel}>Tipo de sesión</Text>
-                  <Text style={styles.cartaValue}>{sesion.tipoSesion}</Text>
-                </View>
-                <View style={styles.separator} />
-                <View style={styles.cartaRow}>
-                  <Text style={styles.cartaLabel}>Modalidad</Text>
-                  <Text style={styles.cartaValue}>{sesion.modalidad}</Text>
-                </View>
-                <View style={styles.separator} />
-                <View style={styles.cartaRow}>
-                  <Text style={styles.cartaLabel}>Fecha y hora</Text>
-                  <Text style={styles.cartaValue}>
-                    {sesion.fecha} {sesion.hora}
-                  </Text>
-                </View>
-              </View>
-
-              <Text style={styles.cartaTextoTitulo}>Declaración de Responsabilidad</Text>
-              <Text style={styles.cartaTexto}>
-                Yo, <Text style={styles.bold}>{cliente?.nombre}</Text>, en pleno uso de mis facultades,
-                declaro haber recibido información completa sobre los riesgos inherentes a la
-                práctica de la equitación y el coaching ecuestre. Me comprometo a seguir las
-                instrucciones del coach en todo momento y acepto la responsabilidad de mi
-                participación.
-              </Text>
-
-              <Text style={styles.cartaTexto}>
-                Asimismo, exonero a <Text style={styles.bold}>Conequus Coaching Ecuestre</Text> y a sus instructores
-                de cualquier responsabilidad derivada de accidentes o lesiones que pudieran ocurrir
-                durante la sesión, siempre que se actúe conforme a los protocolos de seguridad establecidos.
-              </Text>
-
-              <Text style={styles.cartaTexto}>
-                Confirmo que estoy en buen estado de salud para participar en esta actividad y que he
-                informado al coach de cualquier condición médica relevante.
+          <View style={styles.infoCard}>
+            <View style={styles.cartaRow}>
+              <Text style={styles.cartaLabel}>Jinete</Text>
+              <Text style={styles.cartaValue}>{cliente?.nombre}</Text>
+            </View>
+            <View style={styles.separator} />
+            <View style={styles.cartaRow}>
+              <Text style={styles.cartaLabel}>Tipo de sesión</Text>
+              <Text style={styles.cartaValue}>{sesion.tipoSesion}</Text>
+            </View>
+            <View style={styles.separator} />
+            <View style={styles.cartaRow}>
+              <Text style={styles.cartaLabel}>Modalidad</Text>
+              <Text style={styles.cartaValue}>{sesion.modalidad}</Text>
+            </View>
+            <View style={styles.separator} />
+            <View style={styles.cartaRow}>
+              <Text style={styles.cartaLabel}>Fecha y hora</Text>
+              <Text style={styles.cartaValue}>
+                {sesion.fecha} {sesion.hora}
               </Text>
             </View>
           </View>
 
-          {/* Signature */}
-          <View style={styles.signatureSection}>
-            <Text style={styles.sectionLabel}>
-              {firmaBase64 ? 'FIRMA CAPTURADA' : 'DIBUJA TU FIRMA AQUÍ'}
-            </Text>
-            <View style={[
-              styles.signatureContainer,
-              isDesktopView && styles.signatureContainerDesktop
-            ]}>
-              <SignatureCanvas
-                ref={sigRef}
-                onOK={handleOK}
-                onEmpty={() => setFirmaBase64(null)}
-                webStyle={`.m-signature-pad { box-shadow: none; border: none; } .m-signature-pad--body { border: none; } .m-signature-pad--footer .button { background-color: #007AFF; color: white; border-radius: 8px; }`}
-                style={styles.signature}
-              />
-            </View>
-            {firmaBase64 && (
-              <Text style={styles.firmaOk}>✓ Firma capturada correctamente</Text>
-            )}
-          </View>
+          <Text style={styles.cartaTextoTitulo}>Declaración de Responsabilidad</Text>
+          <Text style={styles.cartaTexto}>
+            Yo, <Text style={styles.bold}>{cliente?.nombre}</Text>, en pleno uso de mis facultades,
+            declaro haber recibido información completa sobre los riesgos inherentes a la
+            práctica de la equitación y el coaching ecuestre. Me comprometo a seguir las
+            instrucciones del coach en todo momento y acepto la responsabilidad de mi
+            participación.
+          </Text>
 
-      {/* Bottom bar */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity
-          style={styles.btnLimpiar}
-          onPress={handleClear}
-          disabled={generando}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.btnLimpiarText}>Limpiar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.btnConfirmar, (!firmaBase64 || generando) && styles.btnDisabled]}
-          onPress={handleConfirmar}
-          disabled={!firmaBase64 || generando}
-          activeOpacity={0.7}
-        >
-          {generando ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.btnConfirmarText}>Confirmar y Firmar</Text>
-          )}
-        </TouchableOpacity>
+          <Text style={styles.cartaTexto}>
+            Asimismo, exonero a <Text style={styles.bold}>Conequus Coaching Ecuestre</Text> y a sus instructores
+            de cualquier responsabilidad derivada de accidentes o lesiones que pudieran ocurrir
+            durante la sesión, siempre que se actúe conforme a los protocolos de seguridad establecidos.
+          </Text>
+
+          <Text style={styles.cartaTexto}>
+            Confirmo que estoy en buen estado de salud para participar en esta actividad y que he
+            informado al coach de cualquier condición médica relevante.
+          </Text>
+        </View>
+      </View>
+
+      {/* Signature */}
+      <View style={styles.signatureSection}>
+        <Text style={styles.sectionLabel}>
+          {firmaBase64 ? 'FIRMA CAPTURADA' : 'DIBUJA TU FIRMA AQUÍ'}
+        </Text>
+        <View style={[
+          styles.signatureContainer,
+          isDesktopView && styles.signatureContainerDesktop
+        ]}>
+          <SignatureCanvas
+            ref={sigRef}
+            onOK={handleOK}
+            onEmpty={() => setFirmaBase64(null)}
+            webStyle={`.m-signature-pad { box-shadow: none; border: none; } .m-signature-pad--body { border: none; } .m-signature-pad--footer .button { background-color: #007AFF; color: white; border-radius: 8px; }`}
+            style={styles.signature}
+          />
+        </View>
+        {firmaBase64 && (
+          <Text style={styles.firmaOk}>✓ Firma capturada correctamente</Text>
+        )}
       </View>
     </>
+  );
+
+  const renderBottomBar = () => (
+    <View style={styles.bottomBar}>
+      <TouchableOpacity
+        style={styles.btnLimpiar}
+        onPress={handleClear}
+        disabled={generando}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.btnLimpiarText}>Limpiar</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.btnConfirmar, (!firmaBase64 || generando) && styles.btnDisabled]}
+        onPress={handleConfirmar}
+        disabled={!firmaBase64 || generando}
+        activeOpacity={0.7}
+      >
+        {generando ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.btnConfirmarText}>Confirmar y Firmar</Text>
+        )}
+      </TouchableOpacity>
+    </View>
   );
 
   if (Platform.OS === 'web') {
@@ -332,10 +333,17 @@ export default function FirmaScreen({ navigation, route }: Props) {
             margin: '0 auto',
             height: '100%',
             overflowY: 'auto',
-            paddingBottom: 120
+            paddingBottom: 20
           }}>
-            {renderContent()}
+            {renderScrollContent()}
           </div>
+        </div>
+        <div style={{
+          maxWidth: isDesktopView ? maxWidth : '100%',
+          width: '100%',
+          margin: '0 auto'
+        }}>
+          {renderBottomBar()}
         </div>
       </div>
     );
@@ -343,15 +351,14 @@ export default function FirmaScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={true}
-        >
-          {renderContent()}
-        </ScrollView>
-      </View>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}
+      >
+        {renderScrollContent()}
+      </ScrollView>
+      {renderBottomBar()}
     </SafeAreaView>
   );
 }
@@ -360,7 +367,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
   content: { flex: 1 },
   scrollView: { flex: 1 },
-  scrollContent: { paddingBottom: 40 },
+  scrollContent: { paddingBottom: 20 },
   notFound: { textAlign: 'center', marginTop: 60, color: '#8E8E93', fontSize: 17 },
 
   // Carta
@@ -471,7 +478,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     padding: 20,
-    paddingBottom: 10,
+    paddingBottom: 20,
+    backgroundColor: '#F2F2F7',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#C6C6C8',
   },
   btnLimpiar: {
     flex: 1,
