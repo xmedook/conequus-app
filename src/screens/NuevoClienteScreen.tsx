@@ -261,7 +261,7 @@ export default function NuevoClienteScreen({ navigation, route }: Props) {
         <div style={{
           flex: 1,
           overflowY: 'auto',
-          paddingBottom: 40
+          paddingBottom: 100
         }}>
           {renderContent()}
         </div>

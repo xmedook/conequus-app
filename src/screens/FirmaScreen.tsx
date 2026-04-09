@@ -332,7 +332,7 @@ export default function FirmaScreen({ navigation, route }: Props) {
             margin: '0 auto',
             height: '100%',
             overflowY: 'auto',
-            paddingBottom: 40
+            paddingBottom: 120
           }}>
             {renderContent()}
           </div>
