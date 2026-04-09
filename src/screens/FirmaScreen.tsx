@@ -7,10 +7,11 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
-  SafeAreaView,
   Platform,
   useWindowDimensions,
+  KeyboardAvoidingView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import SignatureCanvas from '../components/SignatureCanvas';
 import * as Print from 'expo-print';
 import { useStore } from '../store';
@@ -350,7 +351,7 @@ export default function FirmaScreen({ navigation, route }: Props) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -358,14 +359,16 @@ export default function FirmaScreen({ navigation, route }: Props) {
       >
         {renderScrollContent()}
       </ScrollView>
-      {renderBottomBar()}
+      <SafeAreaView edges={['bottom']} style={styles.bottomSafeArea}>
+        {renderBottomBar()}
+      </SafeAreaView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
-  content: { flex: 1 },
+  bottomSafeArea: { backgroundColor: '#F2F2F7' },
   scrollView: { flex: 1 },
   scrollContent: { paddingBottom: 20 },
   notFound: { textAlign: 'center', marginTop: 60, color: '#8E8E93', fontSize: 17 },

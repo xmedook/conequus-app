@@ -7,11 +7,11 @@ import {
   TextInput,
   Switch,
   ScrollView,
-  SafeAreaView,
   Alert,
   ActivityIndicator,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { EstadoSeguimiento } from '../types';
 
@@ -198,22 +198,19 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
   }
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          {renderScrollContent()}
-        </ScrollView>
-      </SafeAreaView>
-      <SafeAreaView style={styles.bottomSafeArea}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={true}>
+        {renderScrollContent()}
+      </ScrollView>
+      <SafeAreaView edges={['bottom']} style={styles.bottomSafeArea}>
         {renderBottomBar()}
       </SafeAreaView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
-  safeArea: { flex: 1 },
   bottomSafeArea: { backgroundColor: '#F2F2F7' },
   scrollView: { flex: 1 },
   scrollContent: { paddingBottom: 20 },
