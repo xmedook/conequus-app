@@ -133,7 +133,7 @@ export default function NuevoClienteScreen({ navigation, route }: Props) {
     }
   };
 
-  const renderContent = () => (
+  const renderScrollContent = () => (
     <>
       <Text style={styles.sectionHeader}>INFORMACIÓN</Text>
 
@@ -235,7 +235,11 @@ export default function NuevoClienteScreen({ navigation, route }: Props) {
             />
           </View>
         </View>
+    </>
+  );
 
+  const renderBottomBar = () => (
+    <View style={styles.bottomBar}>
       <TouchableOpacity
         style={styles.submitBtn}
         onPress={handleSubmit}
@@ -245,7 +249,7 @@ export default function NuevoClienteScreen({ navigation, route }: Props) {
           {isEditing ? 'Actualizar' : 'Crear Cliente'}
         </Text>
       </TouchableOpacity>
-    </>
+    </View>
   );
 
   if (Platform.OS === 'web') {
@@ -261,26 +265,29 @@ export default function NuevoClienteScreen({ navigation, route }: Props) {
         <div style={{
           flex: 1,
           overflowY: 'auto',
-          paddingBottom: 100
+          paddingBottom: 20
         }}>
-          {renderContent()}
+          {renderScrollContent()}
         </div>
+        {renderBottomBar()}
       </div>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        {renderContent()}
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        {renderScrollContent()}
       </ScrollView>
+      {renderBottomBar()}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
-  scrollContent: { paddingBottom: 40 },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingBottom: 20 },
   sectionHeader: {
     fontSize: 13,
     fontWeight: '500',
@@ -320,13 +327,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#C6C6C8',
     marginLeft: 16,
   },
+  bottomBar: {
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#F2F2F7',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#C6C6C8',
+  },
   submitBtn: {
     backgroundColor: '#007AFF',
     borderRadius: 10,
     paddingVertical: 16,
     alignItems: 'center',
-    marginHorizontal: 20,
-    marginTop: 10,
   },
   submitText: { color: '#fff', fontSize: 17, fontWeight: '600' },
 });

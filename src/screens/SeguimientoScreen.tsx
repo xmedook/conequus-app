@@ -74,7 +74,7 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
     );
   }
 
-  const renderContent = () => (
+  const renderScrollContent = () => (
     <>
       {/* Header */}
         <View style={styles.headerCard}>
@@ -148,30 +148,31 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
             textAlignVertical="top"
           />
         </View>
-
-      {/* Buttons */}
-      <View style={styles.btnRow}>
-        <TouchableOpacity
-          style={styles.btnCancel}
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.btnCancelText}>Cancelar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.btnSave, guardando && { opacity: 0.6 }]}
-          onPress={handleGuardar}
-          disabled={guardando}
-          activeOpacity={0.7}
-        >
-          {guardando ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.btnSaveText}>Guardar</Text>
-          )}
-        </TouchableOpacity>
-      </View>
     </>
+  );
+
+  const renderBottomBar = () => (
+    <View style={styles.bottomBar}>
+      <TouchableOpacity
+        style={styles.btnCancel}
+        onPress={() => navigation.goBack()}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.btnCancelText}>Cancelar</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.btnSave, guardando && { opacity: 0.6 }]}
+        onPress={handleGuardar}
+        disabled={guardando}
+        activeOpacity={0.7}
+      >
+        {guardando ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.btnSaveText}>Guardar</Text>
+        )}
+      </TouchableOpacity>
+    </View>
   );
 
   if (Platform.OS === 'web') {
@@ -187,26 +188,29 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
         <div style={{
           flex: 1,
           overflowY: 'auto',
-          paddingBottom: 100
+          paddingBottom: 20
         }}>
-          {renderContent()}
+          {renderScrollContent()}
         </div>
+        {renderBottomBar()}
       </div>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        {renderContent()}
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        {renderScrollContent()}
       </ScrollView>
+      {renderBottomBar()}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
-  scroll: { paddingBottom: 40 },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingBottom: 20 },
   notFound: { textAlign: 'center', marginTop: 60, color: '#8E8E93', fontSize: 17 },
 
   // Header
@@ -272,8 +276,17 @@ const styles = StyleSheet.create({
     height: 100,
   },
 
-  // Buttons
-  btnRow: { flexDirection: 'row', gap: 12, marginTop: 30, marginHorizontal: 20 },
+  // Bottom bar
+  bottomBar: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#F2F2F7',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#C6C6C8',
+  },
   btnCancel: {
     flex: 1,
     paddingVertical: 16,
