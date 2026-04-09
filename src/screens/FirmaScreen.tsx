@@ -9,13 +9,13 @@ import {
   ActivityIndicator,
   SafeAreaView,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import SignatureCanvas from '../components/SignatureCanvas';
 import * as Print from 'expo-print';
 import { useStore } from '../store';
 import { supabase } from '../lib/supabase';
-
-const PRIMARY = '#0D9488';
+import { isWeb, getMaxContentWidth } from '../utils/responsive';
 
 interface Props {
   navigation: any;
@@ -29,29 +29,44 @@ export default function FirmaScreen({ navigation, route }: Props) {
   const updateSesionFirma = useStore((s) => s.updateSesionFirma);
   const actualizarSesion = useStore((s) => s.actualizarSesion);
 
+  const { width } = useWindowDimensions();
+  const isDesktopView = isWeb && width >= 768;
+  const maxWidth = getMaxContentWidth();
+
   const sigRef = useRef<any>(null);
   const [firmaBase64, setFirmaBase64] = useState<string | null>(null);
   const [generando, setGenerando] = useState(false);
 
   const cartaResponsiva = `
-    <h2 style="color: #0D9488; text-align: center;">Carta Responsiva</h2>
-    <h3 style="text-align: center;">Sesión de Coaching Ecuestre</h3>
-    <p><strong>Nombre del jinete:</strong> ${cliente?.nombre ?? '—'}</p>
-    <p><strong>Caballo:</strong> ${cliente?.caballo ?? '—'}</p>
-    <p><strong>Tipo de sesión:</strong> ${sesion?.tipoSesion ?? '—'}</p>
-    <p><strong>Modalidad:</strong> ${sesion?.modalidad ?? '—'}</p>
-    <p><strong>Fecha:</strong> ${sesion?.fecha ?? '—'} ${sesion?.hora ?? ''}</p>
-    <br/>
-    <p>Yo, <strong>${cliente?.nombre ?? '___'}</strong>, en pleno uso de mis facultades, 
-    declaro haber recibido información completa sobre los riesgos inherentes a la práctica 
-    de la equitación y el coaching ecuestre. Me comprometo a seguir las instrucciones del 
-    coach en todo momento y acepto la responsabilidad de mi participación.</p>
-    <br/>
-    <p>Asimismo, exonero a <strong>Conequus Coaching Ecuestre</strong> y a sus instructores 
-    de cualquier responsabilidad derivada de accidentes o lesiones que pudieran ocurrir 
-    durante la sesión, siempre que se actúe conforme a los protocolos de seguridad establecidos.</p>
-    <br/>
-    <p>Confirmo que estoy en buen estado de salud para participar en esta actividad.</p>
+    <h2 style="color: #007AFF; text-align: center; margin-bottom: 8px;">Carta Responsiva</h2>
+    <h3 style="text-align: center; color: #8E8E93; margin-bottom: 24px; font-weight: 400;">Sesión de Coaching Ecuestre</h3>
+
+    <div style="background-color: #F9F9F9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr><td style="padding: 8px 0; color: #8E8E93;"><strong>Nombre del jinete:</strong></td><td style="padding: 8px 0; text-align: right;"><strong>${cliente?.nombre ?? '--'}</strong></td></tr>
+        <tr><td style="padding: 8px 0; color: #8E8E93;"><strong>Tipo de sesión:</strong></td><td style="padding: 8px 0; text-align: right;">${sesion?.tipoSesion ?? '--'}</td></tr>
+        <tr><td style="padding: 8px 0; color: #8E8E93;"><strong>Modalidad:</strong></td><td style="padding: 8px 0; text-align: right;">${sesion?.modalidad ?? '--'}</td></tr>
+        <tr><td style="padding: 8px 0; color: #8E8E93;"><strong>Fecha:</strong></td><td style="padding: 8px 0; text-align: right;">${sesion?.fecha ?? '--'} ${sesion?.hora ?? ''}</td></tr>
+      </table>
+    </div>
+
+    <p style="line-height: 1.8; margin-bottom: 16px; text-align: justify;">
+      Yo, <strong>${cliente?.nombre ?? '___'}</strong>, en pleno uso de mis facultades,
+      declaro haber recibido información completa sobre los riesgos inherentes a la práctica
+      de la equitación y el coaching ecuestre. Me comprometo a seguir las instrucciones del
+      coach en todo momento y acepto la responsabilidad de mi participación.
+    </p>
+
+    <p style="line-height: 1.8; margin-bottom: 16px; text-align: justify;">
+      Asimismo, exonero a <strong>Conequus Coaching Ecuestre</strong> y a sus instructores
+      de cualquier responsabilidad derivada de accidentes o lesiones que pudieran ocurrir
+      durante la sesión, siempre que se actúe conforme a los protocolos de seguridad establecidos.
+    </p>
+
+    <p style="line-height: 1.8; margin-bottom: 24px; text-align: justify;">
+      Confirmo que estoy en buen estado de salud para participar en esta actividad y que he
+      informado al coach de cualquier condición médica relevante.
+    </p>
   `;
 
   const handleOK = (signature: string) => {
@@ -77,34 +92,70 @@ export default function FirmaScreen({ navigation, route }: Props) {
           <head>
             <meta charset="utf-8" />
             <style>
-              body { font-family: Arial, sans-serif; padding: 40px; color: #1E293B; }
-              h2, h3 { margin-bottom: 8px; }
-              p { line-height: 1.6; margin-bottom: 8px; }
-              .firma-container { margin-top: 40px; border-top: 1px solid #ccc; padding-top: 20px; }
-              .firma-img { max-width: 300px; border: 1px solid #E2E8F0; }
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+                padding: 60px 80px;
+                color: #1C1C1E;
+                max-width: 800px;
+                margin: 0 auto;
+              }
+              h2 { margin-bottom: 8px; }
+              h3 { margin-top: 0; margin-bottom: 24px; }
+              p { line-height: 1.8; margin-bottom: 16px; }
+              table { width: 100%; border-collapse: collapse; }
+              .firma-container {
+                margin-top: 60px;
+                border-top: 2px solid #E5E5EA;
+                padding-top: 30px;
+              }
+              .firma-img {
+                max-width: 400px;
+                height: auto;
+                border: 1px solid #E5E5EA;
+                padding: 10px;
+                border-radius: 4px;
+                background: white;
+              }
+              .firma-label {
+                font-weight: 600;
+                margin-bottom: 12px;
+                color: #1C1C1E;
+              }
+              .timestamp {
+                margin-top: 24px;
+                color: #8E8E93;
+                font-size: 13px;
+                font-style: italic;
+              }
             </style>
           </head>
           <body>
             ${cartaResponsiva}
             <div class="firma-container">
-              <p><strong>Firma del jinete:</strong></p>
-              <img src="${firmaBase64}" class="firma-img" />
-              <p style="margin-top: 20px; color: #64748B; font-size: 12px;">
-                Firmado digitalmente el ${new Date().toLocaleDateString('es-MX')} a las ${new Date().toLocaleTimeString('es-MX')}
+              <p class="firma-label">Firma del jinete:</p>
+              <img src="${firmaBase64}" class="firma-img" alt="Firma" />
+              <p class="timestamp">
+                Firmado digitalmente el ${new Date().toLocaleDateString('es-MX', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })} a las ${new Date().toLocaleTimeString('es-MX', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
               </p>
             </div>
           </body>
         </html>
       `;
 
-      // expo-print not available on web; only generate PDF on native
       let pdfUri: string | undefined;
       if (Platform.OS !== 'web') {
         const result = await Print.printToFileAsync({ html });
         pdfUri = result.uri;
       }
 
-      // Upload signature to Supabase Storage
       let firmaUrl: string | undefined;
       try {
         const blob = await fetch(firmaBase64).then((r) => r.blob());
@@ -121,7 +172,6 @@ export default function FirmaScreen({ navigation, route }: Props) {
         console.warn('Storage upload failed:', storageErr);
       }
 
-      // Update sesion in Supabase with firma_url and estado
       await actualizarSesion(sesionId, {
         firma_url: firmaUrl ?? firmaBase64,
         carta_responsiva_estado: 'firmada',
@@ -131,14 +181,14 @@ export default function FirmaScreen({ navigation, route }: Props) {
       updateSesionFirma(sesionId, firmaBase64, pdfUri ?? '');
 
       Alert.alert(
-        '✅ Carta firmada',
+        'Carta firmada',
         Platform.OS === 'web'
           ? 'La sesión ha sido marcada como Firmada.'
           : 'La sesión ha sido marcada como Firmada y el PDF fue generado.',
-        [{ text: 'Aceptar', onPress: () => navigation.goBack() }]
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
       );
     } catch {
-      Alert.alert('Error', 'No se pudo completar la firma. Intenta de nuevo.');
+      Alert.alert('Error', 'No se pudo completar la firma.');
     } finally {
       setGenerando(false);
     }
@@ -147,177 +197,285 @@ export default function FirmaScreen({ navigation, route }: Props) {
   if (!sesion) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={{ textAlign: 'center', marginTop: 60, color: '#94A3B8' }}>
-          Sesión no encontrada
-        </Text>
+        <Text style={styles.notFound}>Sesión no encontrada</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const renderContent = () => (
+    <>
+      {/* Carta responsiva */}
+          <View style={styles.cartaSection}>
+            <View style={styles.carta}>
+              <Text style={styles.cartaTitulo}>Carta Responsiva</Text>
+              <Text style={styles.cartaSubtitulo}>Sesión de Coaching Ecuestre</Text>
+
+              <View style={styles.infoCard}>
+                <View style={styles.cartaRow}>
+                  <Text style={styles.cartaLabel}>Jinete</Text>
+                  <Text style={styles.cartaValue}>{cliente?.nombre}</Text>
+                </View>
+                <View style={styles.separator} />
+                <View style={styles.cartaRow}>
+                  <Text style={styles.cartaLabel}>Tipo de sesión</Text>
+                  <Text style={styles.cartaValue}>{sesion.tipoSesion}</Text>
+                </View>
+                <View style={styles.separator} />
+                <View style={styles.cartaRow}>
+                  <Text style={styles.cartaLabel}>Modalidad</Text>
+                  <Text style={styles.cartaValue}>{sesion.modalidad}</Text>
+                </View>
+                <View style={styles.separator} />
+                <View style={styles.cartaRow}>
+                  <Text style={styles.cartaLabel}>Fecha y hora</Text>
+                  <Text style={styles.cartaValue}>
+                    {sesion.fecha} {sesion.hora}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.cartaTextoTitulo}>Declaración de Responsabilidad</Text>
+              <Text style={styles.cartaTexto}>
+                Yo, <Text style={styles.bold}>{cliente?.nombre}</Text>, en pleno uso de mis facultades,
+                declaro haber recibido información completa sobre los riesgos inherentes a la
+                práctica de la equitación y el coaching ecuestre. Me comprometo a seguir las
+                instrucciones del coach en todo momento y acepto la responsabilidad de mi
+                participación.
+              </Text>
+
+              <Text style={styles.cartaTexto}>
+                Asimismo, exonero a <Text style={styles.bold}>Conequus Coaching Ecuestre</Text> y a sus instructores
+                de cualquier responsabilidad derivada de accidentes o lesiones que pudieran ocurrir
+                durante la sesión, siempre que se actúe conforme a los protocolos de seguridad establecidos.
+              </Text>
+
+              <Text style={styles.cartaTexto}>
+                Confirmo que estoy en buen estado de salud para participar en esta actividad y que he
+                informado al coach de cualquier condición médica relevante.
+              </Text>
+            </View>
+          </View>
+
+          {/* Signature */}
+          <View style={styles.signatureSection}>
+            <Text style={styles.sectionLabel}>
+              {firmaBase64 ? 'FIRMA CAPTURADA' : 'DIBUJA TU FIRMA AQUÍ'}
+            </Text>
+            <View style={[
+              styles.signatureContainer,
+              isDesktopView && styles.signatureContainerDesktop
+            ]}>
+              <SignatureCanvas
+                ref={sigRef}
+                onOK={handleOK}
+                onEmpty={() => setFirmaBase64(null)}
+                webStyle={`.m-signature-pad { box-shadow: none; border: none; } .m-signature-pad--body { border: none; } .m-signature-pad--footer .button { background-color: #007AFF; color: white; border-radius: 8px; }`}
+                style={styles.signature}
+              />
+            </View>
+            {firmaBase64 && (
+              <Text style={styles.firmaOk}>✓ Firma capturada correctamente</Text>
+            )}
+          </View>
+
+      {/* Bottom bar */}
+      <View style={styles.bottomBar}>
+        <TouchableOpacity
+          style={styles.btnLimpiar}
+          onPress={handleClear}
+          disabled={generando}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.btnLimpiarText}>Limpiar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.btnConfirmar, (!firmaBase64 || generando) && styles.btnDisabled]}
+          onPress={handleConfirmar}
+          disabled={!firmaBase64 || generando}
+          activeOpacity={0.7}
+        >
+          {generando ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.btnConfirmarText}>Confirmar y Firmar</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    </>
+  );
+
+  if (Platform.OS === 'web') {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.content, isDesktopView && { maxWidth, alignSelf: 'center', width: '100%' }]}>
+          {/* @ts-ignore - div only on web */}
+          <div style={{
+            flex: 1,
+            overflow: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            paddingBottom: 40
+          }}>
+            {renderContent()}
+          </div>
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Carta responsiva — scrollable, fixed max height */}
-      <ScrollView
-        style={styles.cartaScroll}
-        contentContainerStyle={styles.cartaContent}
-        showsVerticalScrollIndicator
-      >
-        <View style={styles.carta}>
-          <Text style={styles.cartaTitulo}>Carta Responsiva</Text>
-          <Text style={styles.cartaSubtitulo}>Sesión de Coaching Ecuestre</Text>
-
-          <View style={styles.cartaRow}>
-            <Text style={styles.cartaLabel}>Jinete:</Text>
-            <Text style={styles.cartaValue}>{cliente?.nombre}</Text>
-          </View>
-          <View style={styles.cartaRow}>
-            <Text style={styles.cartaLabel}>Caballo:</Text>
-            <Text style={styles.cartaValue}>{cliente?.caballo}</Text>
-          </View>
-          <View style={styles.cartaRow}>
-            <Text style={styles.cartaLabel}>Sesión:</Text>
-            <Text style={styles.cartaValue}>{sesion.tipoSesion}</Text>
-          </View>
-          <View style={styles.cartaRow}>
-            <Text style={styles.cartaLabel}>Fecha:</Text>
-            <Text style={styles.cartaValue}>
-              {sesion.fecha} {sesion.hora}
-            </Text>
-          </View>
-
-          <Text style={styles.cartaTexto}>
-            Declaro haber recibido información completa sobre los riesgos inherentes a la
-            práctica de la equitación y el coaching ecuestre. Me comprometo a seguir las
-            instrucciones del coach en todo momento y acepto la responsabilidad de mi
-            participación.{'\n\n'}
-            Exonero a{' '}
-            <Text style={{ fontWeight: '700' }}>Conequus Coaching Ecuestre</Text> de cualquier
-            responsabilidad derivada de accidentes durante la sesión, conforme a los protocolos
-            de seguridad establecidos.
-          </Text>
-        </View>
-      </ScrollView>
-
-      {/* Signature canvas — fills remaining space */}
-      <View style={styles.signatureSection}>
-        <Text style={styles.sectionLabel}>
-          {firmaBase64 ? '✅ Firma capturada' : 'Dibuja tu firma abajo'}
-        </Text>
-        <View style={styles.signatureContainer}>
-          <SignatureCanvas
-            ref={sigRef}
-            onOK={handleOK}
-            onEmpty={() => setFirmaBase64(null)}
-            webStyle={`.m-signature-pad { box-shadow: none; border: none; } .m-signature-pad--body { border: none; } .m-signature-pad--footer .button { background-color: ${PRIMARY}; }`}
-            style={styles.signature}
-          />
-        </View>
-      </View>
-
-      {/* Buttons — always visible at bottom */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity
-          style={styles.btnLimpiar}
-          onPress={handleClear}
-          disabled={generando}
+      <View style={styles.content}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={true}
         >
-          <Text style={styles.btnLimpiarText}>🗑 Limpiar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.btnConfirmar, (!firmaBase64 || generando) && styles.btnDisabled]}
-          onPress={handleConfirmar}
-          disabled={!firmaBase64 || generando}
-        >
-          {generando ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.btnConfirmarText}>✅ Confirmar</Text>
-          )}
-        </TouchableOpacity>
+          {renderContent()}
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: '#F2F2F7' },
+  content: { flex: 1 },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingBottom: 40 },
+  notFound: { textAlign: 'center', marginTop: 60, color: '#8E8E93', fontSize: 17 },
 
-  // Carta section — max height so canvas is always visible
-  cartaScroll: { maxHeight: 220, flexGrow: 0 },
-  cartaContent: { padding: 16 },
+  // Carta
+  cartaSection: { paddingHorizontal: 20, paddingTop: 20 },
   carta: {
     backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: PRIMARY,
+    borderRadius: 10,
+    padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  cartaTitulo: { fontSize: 16, fontWeight: '800', color: PRIMARY, textAlign: 'center' },
-  cartaSubtitulo: { fontSize: 12, color: '#64748B', textAlign: 'center', marginBottom: 12 },
-  cartaRow: { flexDirection: 'row', marginBottom: 4 },
-  cartaLabel: { fontSize: 12, color: '#64748B', width: 65 },
-  cartaValue: { fontSize: 12, color: '#1E293B', fontWeight: '600', flex: 1 },
-  cartaTexto: { fontSize: 12, color: '#475569', lineHeight: 18, marginTop: 10 },
-
-  // Signature section — fills remaining space between carta and buttons
-  signatureSection: {
+  cartaTitulo: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#007AFF',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  cartaSubtitulo: {
+    fontSize: 15,
+    color: '#8E8E93',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  infoCard: {
+    backgroundColor: '#F9F9F9',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 20,
+  },
+  cartaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  cartaLabel: {
+    fontSize: 15,
+    color: '#8E8E93',
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 8,
+  },
+  cartaValue: {
+    fontSize: 15,
+    color: '#000',
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'right',
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#D1D1D6',
+  },
+  cartaTextoTitulo: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 12,
+  },
+  cartaTexto: {
+    fontSize: 14,
+    color: '#3C3C43',
+    lineHeight: 22,
+    marginBottom: 12,
+    textAlign: 'justify',
+  },
+  bold: { fontWeight: '600' },
+
+  // Signature
+  signatureSection: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
   sectionLabel: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#374151',
-    marginBottom: 6,
+    fontWeight: '600',
+    color: '#6D6D72',
+    marginBottom: 8,
     textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   signatureContainer: {
-    flex: 1,
+    height: 200,
     borderWidth: 2,
-    borderColor: '#CBD5E1',
-    borderRadius: 14,
+    borderColor: '#007AFF',
+    borderRadius: 10,
+    borderStyle: 'dashed',
     overflow: 'hidden',
     backgroundColor: '#fff',
   },
+  signatureContainerDesktop: {
+    height: 300,
+  },
   signature: { flex: 1 },
+  firmaOk: {
+    fontSize: 14,
+    color: '#34C759',
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 8,
+  },
 
-  // Bottom bar — always visible, never scrolled away
+  // Bottom bar
   bottomBar: {
     flexDirection: 'row',
-    gap: 10,
-    padding: 16,
-    paddingBottom: 20,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 8,
+    gap: 12,
+    padding: 20,
+    paddingBottom: 10,
   },
   btnLimpiar: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    paddingVertical: 16,
+    borderRadius: 10,
+    backgroundColor: '#fff',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FF3B30',
   },
-  btnLimpiarText: { color: '#64748B', fontWeight: '600' },
+  btnLimpiarText: { color: '#FF3B30', fontWeight: '600', fontSize: 17 },
   btnConfirmar: {
     flex: 2,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: PRIMARY,
+    paddingVertical: 16,
+    borderRadius: 10,
+    backgroundColor: '#007AFF',
     alignItems: 'center',
+    shadowColor: '#007AFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  btnConfirmarText: { color: '#fff', fontWeight: '700' },
-  btnDisabled: { opacity: 0.5 },
+  btnConfirmarText: { color: '#fff', fontWeight: '700', fontSize: 17 },
+  btnDisabled: { opacity: 0.4 },
 });

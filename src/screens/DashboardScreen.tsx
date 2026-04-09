@@ -6,11 +6,12 @@ import {
   FlatList,
   TouchableOpacity,
   SafeAreaView,
+  ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import { useStore } from '../store';
 import { Sesion } from '../types';
-
-const PRIMARY = '#0D9488';
+import { isWeb, getMaxContentWidth } from '../utils/responsive';
 
 interface Props {
   navigation: any;
@@ -23,6 +24,10 @@ export default function DashboardScreen({ navigation }: Props) {
   const userEmail = useStore((s) => s.auth.userEmail);
   const fetchClientes = useStore((s) => s.fetchClientes);
   const fetchSesiones = useStore((s) => s.fetchSesiones);
+
+  const { width } = useWindowDimensions();
+  const isDesktopView = isWeb && width >= 768;
+  const maxWidth = getMaxContentWidth();
 
   useEffect(() => {
     fetchClientes();
@@ -40,17 +45,20 @@ export default function DashboardScreen({ navigation }: Props) {
 
   const renderSesion = ({ item }: { item: Sesion }) => (
     <TouchableOpacity
-      style={styles.sesionCard}
+      style={styles.sesionRow}
       onPress={() => navigation.navigate('DetalleSesion', { sesionId: item.id })}
+      activeOpacity={0.6}
     >
-      <View style={styles.sesionRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.sesionCliente}>{getClienteNombre(item.clienteId)}</Text>
-          <Text style={styles.sesionTipo}>{item.tipoSesion} · {item.modalidad}</Text>
-          <Text style={styles.sesionFecha}>
-            {item.fecha} a las {item.hora}
-          </Text>
-        </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.sesionCliente}>{getClienteNombre(item.clienteId)}</Text>
+        <Text style={styles.sesionMeta}>
+          {item.tipoSesion} · {item.modalidad}
+        </Text>
+        <Text style={styles.sesionFecha}>
+          {item.fecha} a las {item.hora}
+        </Text>
+      </View>
+      <View style={styles.rowRight}>
         <View
           style={[
             styles.badge,
@@ -60,147 +68,213 @@ export default function DashboardScreen({ navigation }: Props) {
           <Text
             style={[
               styles.badgeText,
-              item.status === 'Firmada' ? styles.badgeFirmadaText : styles.badgePendienteText,
+              item.status === 'Firmada'
+                ? styles.badgeFirmadaText
+                : styles.badgePendienteText,
             ]}
           >
             {item.status}
           </Text>
         </View>
+        <Text style={styles.chevron}>›</Text>
       </View>
     </TouchableOpacity>
   );
 
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
+  const renderSeparator = () => <View style={styles.listSeparator} />;
+
+  const content = (
+    <>
+      {/* Large title header */}
+      <View style={[styles.header, isDesktopView && { maxWidth, alignSelf: 'center', width: '100%' }]}>
         <View>
-          <Text style={styles.greeting}>Hola, coach 👋</Text>
+          <Text style={styles.largeTitle}>Sesiones</Text>
           <Text style={styles.email}>{userEmail}</Text>
         </View>
-        <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
-          <Text style={styles.logoutText}>Salir</Text>
+        <TouchableOpacity onPress={logout} activeOpacity={0.6}>
+          <Text style={styles.logoutLink}>Salir</Text>
         </TouchableOpacity>
       </View>
 
       {/* Stats */}
-      <View style={styles.statsRow}>
-        <View style={[styles.statCard, { backgroundColor: PRIMARY }]}>
+      <View style={[styles.statsRow, isDesktopView && { maxWidth, alignSelf: 'center', width: '100%' }]}>
+        <View style={styles.statCard}>
           <Text style={styles.statNum}>{total}</Text>
           <Text style={styles.statLabel}>Total</Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: '#F59E0B' }]}>
-          <Text style={styles.statNum}>{pendientes}</Text>
+        <View style={styles.statCard}>
+          <Text style={[styles.statNum, { color: '#FF9500' }]}>{pendientes}</Text>
           <Text style={styles.statLabel}>Pendientes</Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: '#22C55E' }]}>
-          <Text style={styles.statNum}>{realizadas}</Text>
+        <View style={styles.statCard}>
+          <Text style={[styles.statNum, { color: '#34C759' }]}>{realizadas}</Text>
           <Text style={styles.statLabel}>Firmadas</Text>
         </View>
       </View>
 
-      {/* Sessions list */}
-      <Text style={styles.sectionTitle}>Sesiones</Text>
-      <FlatList
-        data={sesiones}
-        keyExtractor={(item) => item.id}
-        renderItem={renderSesion}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No hay sesiones registradas</Text>
-        }
-      />
+      {/* Quick Actions */}
+      <View style={[styles.actionsCard, isDesktopView && { maxWidth, alignSelf: 'center', width: '100%' }]}>
+        <TouchableOpacity
+          style={styles.actionRow}
+          onPress={() => navigation.navigate('Clientes')}
+          activeOpacity={0.6}
+        >
+          <Text style={styles.actionText}>Ver Clientes</Text>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
+        <View style={styles.actionSeparator} />
+        <TouchableOpacity
+          style={styles.actionRow}
+          onPress={() => navigation.navigate('NuevaSesion')}
+          activeOpacity={0.6}
+        >
+          <Text style={styles.actionText}>Nueva Sesion</Text>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
+      </View>
 
-      {/* FAB */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate('NuevaSesion')}
-      >
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+      {/* Section header */}
+      <Text style={[styles.sectionHeader, isDesktopView && { maxWidth, alignSelf: 'center', width: '100%' }]}>
+        RECIENTES
+      </Text>
+
+      {/* Sessions list */}
+      <View style={[styles.listCard, isDesktopView && { maxWidth, alignSelf: 'center', width: '100%' }]}>
+        <FlatList
+          data={sesiones}
+          keyExtractor={(item) => item.id}
+          renderItem={renderSesion}
+          ItemSeparatorComponent={renderSeparator}
+          scrollEnabled={!isDesktopView}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No hay sesiones registradas</Text>
+          }
+        />
+      </View>
+    </>
+  );
+
+  if (isDesktopView) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={styles.desktopScroll}>
+          {content}
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {content}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: '#F2F2F7' },
+  desktopScroll: {
+    paddingBottom: 40,
+  },
+
+  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingTop: 8,
+    paddingBottom: 12,
   },
-  greeting: { fontSize: 20, fontWeight: '700', color: '#1E293B' },
-  email: { fontSize: 12, color: '#64748B', marginTop: 2 },
-  logoutBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: '#FEE2E2',
-    borderRadius: 8,
+  largeTitle: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#000',
+    letterSpacing: 0.4,
   },
-  logoutText: { color: '#DC2626', fontWeight: '600', fontSize: 13 },
+  email: { fontSize: 13, color: '#8E8E93', marginTop: 2 },
+  logoutLink: { fontSize: 17, color: '#FF3B30', fontWeight: '400' },
+
+  // Stats
   statsRow: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginTop: 16,
+    paddingHorizontal: 20,
     gap: 10,
+    marginBottom: 16,
   },
   statCard: {
     flex: 1,
-    borderRadius: 14,
-    padding: 16,
-    alignItems: 'center',
-  },
-  statNum: { fontSize: 28, fontWeight: '800', color: '#fff' },
-  statLabel: { fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 4 },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1E293B',
-    paddingHorizontal: 20,
-    marginTop: 24,
-    marginBottom: 10,
-  },
-  sesionCard: {
     backgroundColor: '#fff',
-    marginHorizontal: 16,
-    marginBottom: 10,
-    borderRadius: 14,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  sesionRow: { flexDirection: 'row', alignItems: 'center' },
-  sesionCliente: { fontSize: 15, fontWeight: '700', color: '#1E293B' },
-  sesionTipo: { fontSize: 13, color: '#64748B', marginTop: 2 },
-  sesionFecha: { fontSize: 12, color: '#94A3B8', marginTop: 4 },
-  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  badgePendiente: { backgroundColor: '#FEF3C7' },
-  badgeFirmada: { backgroundColor: '#D1FAE5' },
-  badgeText: { fontSize: 11, fontWeight: '600' },
-  badgePendienteText: { color: '#92400E' },
-  badgeFirmadaText: { color: '#065F46' },
-  emptyText: { textAlign: 'center', color: '#94A3B8', marginTop: 40 },
-  fab: {
-    position: 'absolute',
-    bottom: 28,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: PRIMARY,
-    justifyContent: 'center',
+    borderRadius: 10,
+    paddingVertical: 14,
     alignItems: 'center',
-    shadowColor: PRIMARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
   },
-  fabText: { fontSize: 30, color: '#fff', lineHeight: 34 },
+  statNum: { fontSize: 28, fontWeight: '700', color: '#007AFF' },
+  statLabel: { fontSize: 12, color: '#8E8E93', marginTop: 2, fontWeight: '500' },
+
+  // Actions card (grouped style)
+  actionsCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  actionText: { fontSize: 17, color: '#007AFF' },
+  actionSeparator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#C6C6C8',
+    marginLeft: 16,
+  },
+
+  // Section header
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6D6D72',
+    paddingHorizontal: 36,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.2,
+  },
+
+  // Sessions list
+  listCard: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  sesionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  sesionCliente: { fontSize: 17, fontWeight: '600', color: '#000' },
+  sesionMeta: { fontSize: 13, color: '#8E8E93', marginTop: 2 },
+  sesionFecha: { fontSize: 12, color: '#AEAEB2', marginTop: 2 },
+  rowRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  badgePendiente: { backgroundColor: '#FFF3E0' },
+  badgeFirmada: { backgroundColor: '#E8F5E9' },
+  badgeText: { fontSize: 12, fontWeight: '600' },
+  badgePendienteText: { color: '#E65100' },
+  badgeFirmadaText: { color: '#2E7D32' },
+  chevron: { fontSize: 22, color: '#C7C7CC', fontWeight: '300' },
+  listSeparator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#C6C6C8',
+    marginLeft: 16,
+  },
+  emptyText: { textAlign: 'center', color: '#8E8E93', paddingVertical: 40, fontSize: 15 },
 });

@@ -11,6 +11,9 @@ interface AppState {
   // Clientes
   clientes: Cliente[];
   fetchClientes: () => Promise<void>;
+  crearCliente: (cliente: Omit<Cliente, 'id'>) => Promise<string>;
+  actualizarCliente: (id: string, updates: Partial<Omit<Cliente, 'id'>>) => Promise<void>;
+  eliminarCliente: (id: string) => Promise<void>;
 
   // Sesiones
   sesiones: Sesion[];
@@ -82,6 +85,11 @@ function mapDbCliente(row: any): Cliente {
     caballo: '', // DB doesn't have caballo field
     email: row.email,
     telefono: row.telefono,
+    instagram: row.instagram,
+    pais: row.pais,
+    fecha_nacimiento: row.fecha_nacimiento,
+    contacto_emergencia_nombre: row.contacto_emergencia_nombre,
+    contacto_emergencia_telefono: row.contacto_emergencia_telefono,
   };
 }
 
@@ -106,6 +114,67 @@ export const useStore = create<AppState>((set, get) => ({
       return;
     }
     if (data) set({ clientes: data.map(mapDbCliente) });
+  },
+
+  crearCliente: async (cliente) => {
+    const { data, error } = await supabase
+      .from('clientes')
+      .insert({
+        nombre: cliente.nombre,
+        email: cliente.email,
+        telefono: cliente.telefono || null,
+        instagram: cliente.instagram || null,
+        pais: cliente.pais || null,
+        fecha_nacimiento: cliente.fecha_nacimiento || null,
+        contacto_emergencia_nombre: cliente.contacto_emergencia_nombre || null,
+        contacto_emergencia_telefono: cliente.contacto_emergencia_telefono || null,
+      })
+      .select()
+      .single();
+    if (error) {
+      console.error('crearCliente error:', error);
+      return '';
+    }
+    if (data) {
+      const mapped = mapDbCliente(data);
+      set((state) => ({ clientes: [...state.clientes, mapped].sort((a, b) => a.nombre.localeCompare(b.nombre)) }));
+      return data.id;
+    }
+    return '';
+  },
+
+  actualizarCliente: async (id, updates) => {
+    const dbUpdates: any = {};
+    if (updates.nombre !== undefined) dbUpdates.nombre = updates.nombre;
+    if (updates.email !== undefined) dbUpdates.email = updates.email;
+    if (updates.telefono !== undefined) dbUpdates.telefono = updates.telefono || null;
+    if (updates.instagram !== undefined) dbUpdates.instagram = updates.instagram || null;
+    if (updates.pais !== undefined) dbUpdates.pais = updates.pais || null;
+    if (updates.fecha_nacimiento !== undefined) dbUpdates.fecha_nacimiento = updates.fecha_nacimiento || null;
+    if (updates.contacto_emergencia_nombre !== undefined) dbUpdates.contacto_emergencia_nombre = updates.contacto_emergencia_nombre || null;
+    if (updates.contacto_emergencia_telefono !== undefined) dbUpdates.contacto_emergencia_telefono = updates.contacto_emergencia_telefono || null;
+
+    const { error } = await supabase.from('clientes').update(dbUpdates).eq('id', id);
+    if (error) {
+      console.error('actualizarCliente error:', error);
+      return;
+    }
+    set((state) => ({
+      clientes: state.clientes.map((c) =>
+        c.id === id ? { ...c, ...updates } : c
+      ).sort((a, b) => a.nombre.localeCompare(b.nombre)),
+    }));
+  },
+
+  eliminarCliente: async (id) => {
+    const { error } = await supabase.from('clientes').delete().eq('id', id);
+    if (error) {
+      console.error('eliminarCliente error:', error);
+      return;
+    }
+    set((state) => ({
+      clientes: state.clientes.filter((c) => c.id !== id),
+    }));
   },
 
   sesiones: [],

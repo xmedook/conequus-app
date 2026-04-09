@@ -10,8 +10,6 @@ import {
 } from 'react-native';
 import { useStore } from '../store';
 
-const PRIMARY = '#0D9488';
-
 interface Props {
   navigation: any;
   route: any;
@@ -26,16 +24,16 @@ export default function DetalleSesionScreen({ navigation, route }: Props) {
   if (!sesion) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.errorText}>Sesión no encontrada</Text>
+        <Text style={styles.notFound}>Sesion no encontrada</Text>
       </SafeAreaView>
     );
   }
 
   const handleCancelar = () => {
-    Alert.alert('¿Cancelar sesión?', 'Esta acción no se puede deshacer', [
+    Alert.alert('Cancelar sesion?', 'Esta accion no se puede deshacer', [
       { text: 'No', style: 'cancel' },
       {
-        text: 'Sí, cancelar',
+        text: 'Si, cancelar',
         style: 'destructive',
         onPress: () => {
           updateSesionStatus(sesionId, 'Pendiente');
@@ -48,10 +46,20 @@ export default function DetalleSesionScreen({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Header card */}
+        {/* Client header */}
         <View style={styles.headerCard}>
-          <View style={styles.headerTop}>
-            <Text style={styles.clienteNombre}>{cliente?.nombre ?? '—'}</Text>
+          <View style={styles.headerRow}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {(cliente?.nombre ?? '?').charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.clienteNombre}>{cliente?.nombre ?? '--'}</Text>
+              {cliente?.caballo ? (
+                <Text style={styles.caballo}>{cliente.caballo}</Text>
+              ) : null}
+            </View>
             <View
               style={[
                 styles.badge,
@@ -70,10 +78,10 @@ export default function DetalleSesionScreen({ navigation, route }: Props) {
               </Text>
             </View>
           </View>
-          <Text style={styles.caballo}>🐴 {cliente?.caballo ?? '—'}</Text>
         </View>
 
-        {/* Info rows */}
+        {/* Info */}
+        <Text style={styles.sectionHeader}>DETALLES</Text>
         <View style={styles.infoCard}>
           <InfoRow label="Tipo" value={sesion.tipoSesion} />
           <InfoRow label="Modalidad" value={sesion.modalidad} />
@@ -85,130 +93,173 @@ export default function DetalleSesionScreen({ navigation, route }: Props) {
           ) : null}
           {sesion.notas ? <InfoRow label="Notas" value={sesion.notas} /> : null}
           <InfoRow
-            label="Autorización fotos"
-            value={sesion.autorizacionFotos ? 'Sí ✅' : 'No ❌'}
+            label="Fotos autorizadas"
+            value={sesion.autorizacionFotos ? 'Si' : 'No'}
+            isLast
           />
         </View>
 
         {/* Actions */}
-        <View style={styles.actionsContainer}>
+        <Text style={styles.sectionHeader}>ACCIONES</Text>
+        <View style={styles.actionsCard}>
           {sesion.status === 'Pendiente' && (
-            <TouchableOpacity
-              style={styles.btnFirmar}
-              onPress={() => navigation.navigate('Firma', { sesionId })}
-            >
-              <Text style={styles.btnFirmarText}>✍️ Firmar carta responsiva</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                style={styles.actionRow}
+                onPress={() => navigation.navigate('Firma', { sesionId })}
+                activeOpacity={0.6}
+              >
+                <Text style={styles.actionBlue}>Firmar Carta Responsiva</Text>
+                <Text style={styles.chevron}>›</Text>
+              </TouchableOpacity>
+              <View style={styles.separator} />
+            </>
           )}
-
           <TouchableOpacity
-            style={styles.btnSeguimiento}
+            style={styles.actionRow}
             onPress={() => navigation.navigate('Seguimiento', { sesionId })}
+            activeOpacity={0.6}
           >
-            <Text style={styles.btnSeguimientoText}>📋 Seguimiento</Text>
+            <Text style={styles.actionBlue}>Seguimiento</Text>
+            <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
-
-          {sesion.status === 'Pendiente' && (
-            <TouchableOpacity style={styles.btnCancelar} onPress={handleCancelar}>
-              <Text style={styles.btnCancelarText}>Cancelar sesión</Text>
-            </TouchableOpacity>
-          )}
-
           {sesion.status === 'Firmada' && sesion.pdfUri && (
-            <View style={styles.pdfBadge}>
-              <Text style={styles.pdfText}>📄 PDF generado y guardado</Text>
-            </View>
+            <>
+              <View style={styles.separator} />
+              <View style={styles.actionRow}>
+                <Text style={styles.actionGreen}>PDF generado y guardado</Text>
+              </View>
+            </>
           )}
         </View>
+
+        {/* Destructive */}
+        {sesion.status === 'Pendiente' && (
+          <>
+            <View style={{ height: 30 }} />
+            <View style={styles.actionsCard}>
+              <TouchableOpacity
+                style={styles.actionRow}
+                onPress={handleCancelar}
+                activeOpacity={0.6}
+              >
+                <Text style={styles.actionRed}>Cancelar Sesion</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({
+  label,
+  value,
+  isLast,
+}: {
+  label: string;
+  value: string;
+  isLast?: boolean;
+}) {
   return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
-    </View>
+    <>
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>{label}</Text>
+        <Text style={styles.infoValue}>{value}</Text>
+      </View>
+      {!isLast && <View style={styles.separator} />}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  scroll: { padding: 16, paddingBottom: 40 },
-  errorText: { textAlign: 'center', marginTop: 60, color: '#94A3B8', fontSize: 16 },
+  container: { flex: 1, backgroundColor: '#F2F2F7' },
+  scroll: { paddingBottom: 40 },
+  notFound: { textAlign: 'center', marginTop: 60, color: '#8E8E93', fontSize: 17 },
+
+  // Header card
   headerCard: {
-    backgroundColor: PRIMARY,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginHorizontal: 20,
+    marginTop: 12,
+    padding: 16,
   },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+  headerRow: { flexDirection: 'row', alignItems: 'center' },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
   },
-  clienteNombre: { fontSize: 20, fontWeight: '800', color: '#fff', flex: 1, marginRight: 8 },
-  caballo: { fontSize: 14, color: 'rgba(255,255,255,0.85)', marginTop: 6 },
-  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-  badgePendiente: { backgroundColor: 'rgba(245,158,11,0.2)' },
-  badgeFirmada: { backgroundColor: 'rgba(34,197,94,0.2)' },
-  badgeText: { fontSize: 12, fontWeight: '700' },
-  badgePendienteText: { color: '#FCD34D' },
-  badgeFirmadaText: { color: '#6EE7B7' },
+  avatarText: { color: '#fff', fontSize: 20, fontWeight: '600' },
+  clienteNombre: { fontSize: 20, fontWeight: '600', color: '#000' },
+  caballo: { fontSize: 15, color: '#8E8E93', marginTop: 1 },
+  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
+  badgePendiente: { backgroundColor: '#FFF3E0' },
+  badgeFirmada: { backgroundColor: '#E8F5E9' },
+  badgeText: { fontSize: 13, fontWeight: '600' },
+  badgePendienteText: { color: '#E65100' },
+  badgeFirmadaText: { color: '#2E7D32' },
+
+  // Section header
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6D6D72',
+    paddingHorizontal: 36,
+    paddingTop: 24,
+    paddingBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.2,
+  },
+
+  // Info card
   infoCard: {
     backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    borderRadius: 10,
+    marginHorizontal: 20,
+    overflow: 'hidden',
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
-  infoLabel: { fontSize: 13, color: '#64748B', fontWeight: '500' },
-  infoValue: { fontSize: 13, color: '#1E293B', fontWeight: '600', maxWidth: '60%', textAlign: 'right' },
-  actionsContainer: { gap: 10 },
-  btnFirmar: {
-    backgroundColor: PRIMARY,
-    borderRadius: 14,
-    paddingVertical: 16,
+  infoLabel: { fontSize: 17, color: '#000' },
+  infoValue: {
+    fontSize: 17,
+    color: '#8E8E93',
+    maxWidth: '55%',
+    textAlign: 'right',
+  },
+
+  // Actions
+  actionsCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginHorizontal: 20,
+    overflow: 'hidden',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
-  btnFirmarText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  btnSeguimiento: {
-    backgroundColor: '#EFF6FF',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#BFDBFE',
+  actionBlue: { fontSize: 17, color: '#007AFF' },
+  actionGreen: { fontSize: 17, color: '#34C759' },
+  actionRed: { fontSize: 17, color: '#FF3B30', textAlign: 'center', flex: 1 },
+  chevron: { fontSize: 22, color: '#C7C7CC', fontWeight: '300' },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#C6C6C8',
+    marginLeft: 16,
   },
-  btnSeguimientoText: { color: '#1D4ED8', fontWeight: '700', fontSize: 15 },
-  btnCancelar: {
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#FCA5A5',
-  },
-  btnCancelarText: { color: '#DC2626', fontWeight: '600' },
-  pdfBadge: {
-    backgroundColor: '#F0FDF4',
-    borderRadius: 12,
-    padding: 14,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#BBF7D0',
-  },
-  pdfText: { color: '#166534', fontWeight: '600' },
 });

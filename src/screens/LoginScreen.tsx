@@ -12,8 +12,6 @@ import {
 } from 'react-native';
 import { useStore } from '../store';
 
-const PRIMARY = '#0D9488';
-
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +20,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Ingresa tu correo y contraseña');
+      Alert.alert('Error', 'Ingresa tu correo y contrasena');
       return;
     }
     setLoading(true);
@@ -38,114 +36,141 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.inner}>
-        {/* Logo / Brand */}
+        {/* Brand */}
         <View style={styles.brandContainer}>
-          <Text style={styles.logo}>🐴</Text>
+          <View style={styles.iconCircle}>
+            <Text style={styles.logo}>C</Text>
+          </View>
           <Text style={styles.brandName}>Conequus</Text>
           <Text style={styles.brandSubtitle}>Coaching Ecuestre</Text>
         </View>
 
         {/* Form */}
-        <View style={styles.form}>
-          <Text style={styles.label}>Correo electrónico</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="coach@conequus.mx"
-            placeholderTextColor="#94A3B8"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-
-          <Text style={styles.label}>Contraseña</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="••••••••"
-            placeholderTextColor="#94A3B8"
-            secureTextEntry
-          />
-
-          <TouchableOpacity
-            style={[styles.btn, loading && { opacity: 0.7 }]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.btnText}>Iniciar sesión</Text>
-            )}
-          </TouchableOpacity>
-
-          <Text style={styles.hint}>Cualquier credencial funciona en este POC</Text>
+        <View style={styles.formCard}>
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>Correo</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="coach@conequus.mx"
+              placeholderTextColor="#C7C7CC"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+          <View style={styles.separator} />
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>Contrasena</Text>
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Requerida"
+              placeholderTextColor="#C7C7CC"
+              secureTextEntry
+            />
+          </View>
         </View>
+
+        <TouchableOpacity
+          style={[styles.btn, loading && { opacity: 0.6 }]}
+          onPress={handleLogin}
+          disabled={loading}
+          activeOpacity={0.7}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.btnText}>Iniciar Sesion</Text>
+          )}
+        </TouchableOpacity>
+
+        <Text style={styles.hint}>Cualquier credencial funciona en este POC</Text>
       </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F0FDFA' },
+  container: { flex: 1, backgroundColor: '#F2F2F7' },
   inner: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 20,
   },
   brandContainer: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: 40,
   },
-  logo: { fontSize: 64 },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  logo: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#fff',
+  },
   brandName: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: PRIMARY,
-    marginTop: 8,
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#000',
+    letterSpacing: 0.4,
   },
   brandSubtitle: {
-    fontSize: 14,
-    color: '#64748B',
+    fontSize: 15,
+    color: '#8E8E93',
     marginTop: 4,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
   },
-  form: {},
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 6,
-    marginTop: 16,
+  formCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  inputLabel: {
+    width: 90,
+    fontSize: 17,
+    color: '#000',
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#1E293B',
-    backgroundColor: '#fff',
+    flex: 1,
+    fontSize: 17,
+    color: '#000',
+    padding: 0,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#C6C6C8',
+    marginLeft: 16,
   },
   btn: {
-    backgroundColor: PRIMARY,
-    borderRadius: 12,
-    paddingVertical: 14,
+    backgroundColor: '#007AFF',
+    borderRadius: 10,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 28,
+    marginBottom: 12,
   },
   btnText: {
     color: '#fff',
-    fontWeight: '700',
-    fontSize: 16,
+    fontWeight: '600',
+    fontSize: 17,
   },
   hint: {
     textAlign: 'center',
-    color: '#94A3B8',
-    fontSize: 12,
-    marginTop: 16,
+    color: '#8E8E93',
+    fontSize: 13,
   },
 });

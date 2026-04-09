@@ -74,7 +74,7 @@ const SignatureCanvas = forwardRef<any, SignatureCanvasProps>((props, ref) => {
         style={{
           width: '100%',
           height: '100%',
-          touchAction: 'none',
+          touchAction: 'auto',
           cursor: 'crosshair',
           display: 'block',
         }}

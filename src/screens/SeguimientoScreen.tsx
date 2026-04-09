@@ -14,7 +14,6 @@ import {
 import { useStore } from '../store';
 import { EstadoSeguimiento } from '../types';
 
-const PRIMARY = '#0D9488';
 const ESTADOS: EstadoSeguimiento[] = ['En proceso', 'Completado', 'Cancelado', 'Reprogramado'];
 
 interface Props {
@@ -38,13 +37,6 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
   const [notas, setNotas] = useState(sesion?.notas ?? '');
   const [guardando, setGuardando] = useState(false);
 
-  const estadoColors: Record<EstadoSeguimiento, { bg: string; text: string; border: string }> = {
-    'En proceso': { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' },
-    'Completado': { bg: '#F0FDF4', text: '#166534', border: '#BBF7D0' },
-    'Cancelado': { bg: '#FEF2F2', text: '#991B1B', border: '#FECACA' },
-    'Reprogramado': { bg: '#FFFBEB', text: '#92400E', border: '#FDE68A' },
-  };
-
   const handleGuardar = async () => {
     setGuardando(true);
     try {
@@ -54,11 +46,11 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
         observaciones,
         notas,
       });
-      Alert.alert('✅ Seguimiento guardado', 'El seguimiento fue actualizado correctamente.', [
-        { text: 'Aceptar', onPress: () => navigation.goBack() },
+      Alert.alert('Seguimiento guardado', 'El seguimiento fue actualizado correctamente.', [
+        { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch {
-      Alert.alert('Error', 'No se pudo guardar el seguimiento. Intenta de nuevo.');
+      Alert.alert('Error', 'No se pudo guardar el seguimiento.');
     } finally {
       setGuardando(false);
     }
@@ -67,9 +59,7 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
   if (!sesion) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={{ textAlign: 'center', marginTop: 60, color: '#94A3B8' }}>
-          Sesión no encontrada
-        </Text>
+        <Text style={styles.notFound}>Sesion no encontrada</Text>
       </SafeAreaView>
     );
   }
@@ -79,95 +69,96 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         {/* Header */}
         <View style={styles.headerCard}>
-          <Text style={styles.headerTitle}>Seguimiento de sesión</Text>
-          <Text style={styles.headerSub}>
-            {cliente?.nombre} · {sesion.tipoSesion}
-          </Text>
+          <Text style={styles.headerTitle}>{cliente?.nombre}</Text>
+          <Text style={styles.headerSub}>{sesion.tipoSesion} · {sesion.fecha}</Text>
         </View>
 
-        {/* Estado selector */}
-        <Text style={styles.label}>Estado</Text>
-        <View style={styles.estadosGrid}>
-          {ESTADOS.map((e) => {
-            const colors = estadoColors[e];
-            const isActive = estado === e;
-            return (
+        {/* Estado */}
+        <Text style={styles.sectionHeader}>ESTADO</Text>
+        <View style={styles.card}>
+          {ESTADOS.map((e, i) => (
+            <View key={e}>
+              {i > 0 && <View style={styles.separator} />}
               <TouchableOpacity
-                key={e}
-                style={[
-                  styles.estadoBtn,
-                  { borderColor: colors.border },
-                  isActive && { backgroundColor: colors.bg, borderWidth: 2 },
-                ]}
+                style={styles.selectRow}
                 onPress={() => setEstado(e)}
+                activeOpacity={0.6}
               >
-                <Text
-                  style={[
-                    styles.estadoText,
-                    isActive ? { color: colors.text, fontWeight: '700' } : { color: '#64748B' },
-                  ]}
-                >
-                  {e}
-                </Text>
+                <Text style={styles.selectText}>{e}</Text>
+                {estado === e && (
+                  <Text style={styles.checkmark}>✓</Text>
+                )}
               </TouchableOpacity>
-            );
-          })}
+            </View>
+          ))}
         </View>
 
-        {/* Autorización fotos */}
-        <View style={styles.switchRow}>
-          <View>
-            <Text style={styles.switchLabel}>Autorización de fotos / video</Text>
-            <Text style={styles.switchSub}>
-              El jinete autoriza material fotográfico de la sesión
-            </Text>
+        {/* Photo authorization */}
+        <Text style={styles.sectionHeader}>AUTORIZACION</Text>
+        <View style={styles.card}>
+          <View style={styles.switchRow}>
+            <View style={{ flex: 1, marginRight: 12 }}>
+              <Text style={styles.switchLabel}>Fotos / Video</Text>
+              <Text style={styles.switchSub}>
+                Autoriza material fotografico de la sesion
+              </Text>
+            </View>
+            <Switch
+              value={autorizacionFotos}
+              onValueChange={setAutorizacionFotos}
+              trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+              thumbColor="#fff"
+            />
           </View>
-          <Switch
-            value={autorizacionFotos}
-            onValueChange={setAutorizacionFotos}
-            trackColor={{ false: '#CBD5E1', true: PRIMARY }}
-            thumbColor="#fff"
-          />
         </View>
 
         {/* Observaciones */}
-        <Text style={styles.label}>Observaciones</Text>
-        <TextInput
-          style={[styles.textArea, { height: 100 }]}
-          value={observaciones}
-          onChangeText={setObservaciones}
-          placeholder="Observaciones generales de la sesión..."
-          placeholderTextColor="#94A3B8"
-          multiline
-          textAlignVertical="top"
-        />
+        <Text style={styles.sectionHeader}>OBSERVACIONES</Text>
+        <View style={styles.card}>
+          <TextInput
+            style={styles.textArea}
+            value={observaciones}
+            onChangeText={setObservaciones}
+            placeholder="Observaciones generales de la sesion..."
+            placeholderTextColor="#C7C7CC"
+            multiline
+            textAlignVertical="top"
+          />
+        </View>
 
         {/* Notas */}
-        <Text style={styles.label}>Notas del coach</Text>
-        <TextInput
-          style={[styles.textArea, { height: 120 }]}
-          value={notas}
-          onChangeText={setNotas}
-          placeholder="Notas privadas del coach..."
-          placeholderTextColor="#94A3B8"
-          multiline
-          textAlignVertical="top"
-        />
+        <Text style={styles.sectionHeader}>NOTAS DEL COACH</Text>
+        <View style={styles.card}>
+          <TextInput
+            style={[styles.textArea, { height: 120 }]}
+            value={notas}
+            onChangeText={setNotas}
+            placeholder="Notas privadas del coach..."
+            placeholderTextColor="#C7C7CC"
+            multiline
+            textAlignVertical="top"
+          />
+        </View>
 
-        {/* Botones */}
+        {/* Buttons */}
         <View style={styles.btnRow}>
-          <TouchableOpacity style={styles.btnCancelar} onPress={() => navigation.goBack()}>
-            <Text style={styles.btnCancelarText}>Cancelar</Text>
+          <TouchableOpacity
+            style={styles.btnCancel}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.btnCancelText}>Cancelar</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.btnGuardar, guardando && { opacity: 0.7 }]}
+            style={[styles.btnSave, guardando && { opacity: 0.6 }]}
             onPress={handleGuardar}
             disabled={guardando}
+            activeOpacity={0.7}
           >
             {guardando ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.btnGuardarText}>Guardar seguimiento</Text>
+              <Text style={styles.btnSaveText}>Guardar</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -177,77 +168,89 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  scroll: { padding: 16, paddingBottom: 50 },
+  container: { flex: 1, backgroundColor: '#F2F2F7' },
+  scroll: { paddingBottom: 40 },
+  notFound: { textAlign: 'center', marginTop: 60, color: '#8E8E93', fontSize: 17 },
+
+  // Header
   headerCard: {
-    backgroundColor: PRIMARY,
-    borderRadius: 14,
-    padding: 18,
-    marginBottom: 20,
-  },
-  headerTitle: { fontSize: 18, fontWeight: '800', color: '#fff' },
-  headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 10,
-    marginTop: 16,
-  },
-  estadosGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  estadoBtn: {
-    flex: 1,
-    minWidth: '45%',
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
     backgroundColor: '#fff',
-    alignItems: 'center',
+    borderRadius: 10,
+    marginHorizontal: 20,
+    marginTop: 12,
+    padding: 16,
   },
-  estadoText: { fontSize: 13, fontWeight: '500' },
+  headerTitle: { fontSize: 20, fontWeight: '600', color: '#000' },
+  headerSub: { fontSize: 15, color: '#8E8E93', marginTop: 2 },
+
+  // Section
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6D6D72',
+    paddingHorizontal: 36,
+    paddingTop: 24,
+    paddingBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.2,
+  },
+
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginHorizontal: 20,
+    overflow: 'hidden',
+  },
+  selectRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  selectText: { fontSize: 17, color: '#000' },
+  checkmark: { fontSize: 17, color: '#007AFF', fontWeight: '600' },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#C6C6C8',
+    marginLeft: 16,
+  },
+
+  // Switch
   switchRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
-    marginTop: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
-  switchLabel: { fontSize: 14, fontWeight: '600', color: '#1E293B', flex: 1, marginRight: 10 },
-  switchSub: { fontSize: 11, color: '#64748B', marginTop: 2, flex: 1 },
+  switchLabel: { fontSize: 17, color: '#000' },
+  switchSub: { fontSize: 13, color: '#8E8E93', marginTop: 2 },
+
+  // Text area
   textArea: {
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 14,
-    color: '#1E293B',
-    backgroundColor: '#fff',
+    padding: 16,
+    fontSize: 17,
+    color: '#000',
+    height: 100,
   },
-  btnRow: { flexDirection: 'row', gap: 10, marginTop: 28 },
-  btnCancelar: {
+
+  // Buttons
+  btnRow: { flexDirection: 'row', gap: 12, marginTop: 30, marginHorizontal: 20 },
+  btnCancel: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
+    paddingVertical: 16,
+    borderRadius: 10,
+    backgroundColor: '#fff',
     alignItems: 'center',
   },
-  btnCancelarText: { color: '#64748B', fontWeight: '600' },
-  btnGuardar: {
+  btnCancelText: { color: '#007AFF', fontWeight: '600', fontSize: 17 },
+  btnSave: {
     flex: 2,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: PRIMARY,
+    paddingVertical: 16,
+    borderRadius: 10,
+    backgroundColor: '#007AFF',
     alignItems: 'center',
   },
-  btnGuardarText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  btnSaveText: { color: '#fff', fontWeight: '600', fontSize: 17 },
 });

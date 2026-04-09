@@ -9,6 +9,11 @@ export interface Cliente {
   caballo: string;
   email: string;
   telefono?: string;
+  instagram?: string;
+  pais?: string;
+  fecha_nacimiento?: string;
+  contacto_emergencia_nombre?: string;
+  contacto_emergencia_telefono?: string;
 }
 
 export interface Sesion {
