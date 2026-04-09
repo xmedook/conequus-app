@@ -284,32 +284,31 @@ export default function FirmaScreen({ navigation, route }: Props) {
           <Text style={styles.firmaOk}>✓ Firma capturada correctamente</Text>
         )}
       </View>
-    </>
-  );
 
-  const renderBottomBar = () => (
-    <View style={styles.bottomBar}>
-      <TouchableOpacity
-        style={styles.btnLimpiar}
-        onPress={handleClear}
-        disabled={generando}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.btnLimpiarText}>Limpiar</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.btnConfirmar, (!firmaBase64 || generando) && styles.btnDisabled]}
-        onPress={handleConfirmar}
-        disabled={!firmaBase64 || generando}
-        activeOpacity={0.7}
-      >
-        {generando ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.btnConfirmarText}>Confirmar y Firmar</Text>
-        )}
-      </TouchableOpacity>
-    </View>
+      {/* Action buttons inside scroll area */}
+      <View style={styles.actionButtons}>
+        <TouchableOpacity
+          style={styles.btnLimpiar}
+          onPress={handleClear}
+          disabled={generando}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.btnLimpiarText}>Limpiar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.btnConfirmar, (!firmaBase64 || generando) && styles.btnDisabled]}
+          onPress={handleConfirmar}
+          disabled={!firmaBase64 || generando}
+          activeOpacity={0.7}
+        >
+          {generando ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.btnConfirmarText}>Confirmar y Firmar</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    </>
   );
 
   if (Platform.OS === 'web') {
@@ -334,24 +333,17 @@ export default function FirmaScreen({ navigation, route }: Props) {
             margin: '0 auto',
             height: '100%',
             overflowY: 'auto',
-            paddingBottom: 20
+            paddingBottom: 40
           }}>
             {renderScrollContent()}
           </div>
-        </div>
-        <div style={{
-          maxWidth: isDesktopView ? maxWidth : '100%',
-          width: '100%',
-          margin: '0 auto'
-        }}>
-          {renderBottomBar()}
         </div>
       </div>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -359,18 +351,14 @@ export default function FirmaScreen({ navigation, route }: Props) {
       >
         {renderScrollContent()}
       </ScrollView>
-      <SafeAreaView edges={['bottom']} style={styles.bottomSafeArea}>
-        {renderBottomBar()}
-      </SafeAreaView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
-  bottomSafeArea: { backgroundColor: '#F2F2F7' },
   scrollView: { flex: 1 },
-  scrollContent: { paddingBottom: 20 },
+  scrollContent: { paddingBottom: 40 },
   notFound: { textAlign: 'center', marginTop: 60, color: '#8E8E93', fontSize: 17 },
 
   // Carta
@@ -476,15 +464,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 
-  // Bottom bar
-  bottomBar: {
+  // Action buttons (inside scroll)
+  actionButtons: {
     flexDirection: 'row',
     gap: 12,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 24,
     paddingBottom: 20,
-    backgroundColor: '#F2F2F7',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#C6C6C8',
   },
   btnLimpiar: {
     flex: 1,
