@@ -54,7 +54,20 @@ export default function ClientesScreen({ navigation }: Props) {
           text: 'Eliminar',
           style: 'destructive',
           onPress: async () => {
-            await eliminarCliente(cliente.id);
+            try {
+              await eliminarCliente(cliente.id);
+              Alert.alert(
+                'Cliente eliminado',
+                `${cliente.nombre} ha sido eliminado exitosamente.`,
+                [{ text: 'OK' }]
+              );
+            } catch (error) {
+              Alert.alert(
+                'Error al eliminar',
+                `No se pudo eliminar a ${cliente.nombre}.\n\nDetalle: ${error instanceof Error ? error.message : 'Error desconocido'}`,
+                [{ text: 'Cerrar' }]
+              );
+            }
           },
         },
       ]

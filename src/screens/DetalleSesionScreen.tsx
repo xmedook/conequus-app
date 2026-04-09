@@ -37,7 +37,11 @@ export default function DetalleSesionScreen({ navigation, route }: Props) {
         style: 'destructive',
         onPress: () => {
           updateSesionStatus(sesionId, 'Pendiente');
-          navigation.goBack();
+          Alert.alert(
+            'Sesión cancelada',
+            `La sesión de ${cliente?.nombre} ha sido cancelada exitosamente.`,
+            [{ text: 'OK', onPress: () => navigation.goBack() }]
+          );
         },
       },
     ]);
