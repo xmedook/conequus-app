@@ -51,7 +51,11 @@ export default function DetalleSesionScreen({ navigation, route }: Props) {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Client header */}
-        <View style={styles.headerCard}>
+        <TouchableOpacity
+          style={styles.headerCard}
+          onPress={() => cliente && navigation.navigate('NuevoCliente', { clienteId: cliente.id })}
+          activeOpacity={0.7}
+        >
           <View style={styles.headerRow}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
@@ -63,6 +67,7 @@ export default function DetalleSesionScreen({ navigation, route }: Props) {
               {cliente?.caballo ? (
                 <Text style={styles.caballo}>{cliente.caballo}</Text>
               ) : null}
+              <Text style={styles.verFicha}>Ver ficha del cliente ›</Text>
             </View>
             <View
               style={[
@@ -82,7 +87,7 @@ export default function DetalleSesionScreen({ navigation, route }: Props) {
               </Text>
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Info */}
         <Text style={styles.sectionHeader}>DETALLES</Text>
@@ -203,6 +208,7 @@ const styles = StyleSheet.create({
   avatarText: { color: '#fff', fontSize: 20, fontWeight: '600' },
   clienteNombre: { fontSize: 20, fontWeight: '600', color: '#000' },
   caballo: { fontSize: 15, color: '#8E8E93', marginTop: 1 },
+  verFicha: { fontSize: 13, color: '#007AFF', marginTop: 4, fontWeight: '500' },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
   badgePendiente: { backgroundColor: '#FFF3E0' },
   badgeFirmada: { backgroundColor: '#E8F5E9' },

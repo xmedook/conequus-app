@@ -28,6 +28,16 @@ export default function NuevoClienteScreen({ navigation, route }: Props) {
   const crearCliente = useStore((s) => s.crearCliente);
   const actualizarCliente = useStore((s) => s.actualizarCliente);
   const getClienteById = useStore((s) => s.getClienteById);
+  const sesiones = useStore((s) => s.sesiones);
+
+  // Get sessions for this client
+  const clienteSesiones = isEditing
+    ? sesiones.filter(s => s.clienteId === clienteId).sort((a, b) => {
+        const dateA = new Date(`${a.fecha}T${a.hora}`);
+        const dateB = new Date(`${b.fecha}T${b.hora}`);
+        return dateB.getTime() - dateA.getTime(); // Most recent first
+      })
+    : [];
 
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
@@ -235,6 +245,52 @@ export default function NuevoClienteScreen({ navigation, route }: Props) {
             />
           </View>
         </View>
+
+        {/* Session history - only show when editing */}
+        {isEditing && clienteSesiones.length > 0 && (
+          <>
+            <Text style={styles.sectionHeader}>HISTORIAL DE SESIONES</Text>
+            <View style={styles.formCard}>
+              {clienteSesiones.map((sesion, index) => (
+                <View key={sesion.id}>
+                  {index > 0 && <View style={styles.separator} />}
+                  <TouchableOpacity
+                    style={styles.sesionRow}
+                    onPress={() => navigation.navigate('DetalleSesion', { sesionId: sesion.id })}
+                    activeOpacity={0.6}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.sesionTipo}>{sesion.tipoSesion}</Text>
+                      <Text style={styles.sesionMeta}>
+                        {sesion.fecha} · {sesion.hora} · {sesion.modalidad}
+                      </Text>
+                    </View>
+                    <View style={styles.rowRight}>
+                      <View
+                        style={[
+                          styles.badge,
+                          sesion.status === 'Firmada' ? styles.badgeFirmada : styles.badgePendiente,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.badgeText,
+                            sesion.status === 'Firmada'
+                              ? styles.badgeFirmadaText
+                              : styles.badgePendienteText,
+                          ]}
+                        >
+                          {sesion.status}
+                        </Text>
+                      </View>
+                      <Text style={styles.chevron}>›</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
     </>
   );
 
@@ -345,4 +401,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   submitText: { color: '#fff', fontSize: 17, fontWeight: '600' },
+
+  // Session history
+  sesionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  sesionTipo: { fontSize: 17, fontWeight: '600', color: '#000' },
+  sesionMeta: { fontSize: 13, color: '#8E8E93', marginTop: 2 },
+  rowRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  badgePendiente: { backgroundColor: '#FFF3E0' },
+  badgeFirmada: { backgroundColor: '#E8F5E9' },
+  badgeText: { fontSize: 12, fontWeight: '600' },
+  badgePendienteText: { color: '#E65100' },
+  badgeFirmadaText: { color: '#2E7D32' },
+  chevron: { fontSize: 22, color: '#C7C7CC', fontWeight: '300' },
 });
