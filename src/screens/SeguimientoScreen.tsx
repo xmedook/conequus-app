@@ -10,6 +10,7 @@ import {
   SafeAreaView,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useStore } from '../store';
 import { EstadoSeguimiento } from '../types';
@@ -64,10 +65,9 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
     );
   }
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        {/* Header */}
+  const renderContent = () => (
+    <>
+      {/* Header */}
         <View style={styles.headerCard}>
           <Text style={styles.headerTitle}>{cliente?.nombre}</Text>
           <Text style={styles.headerSub}>{sesion.tipoSesion} · {sesion.fecha}</Text>
@@ -140,28 +140,56 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
           />
         </View>
 
-        {/* Buttons */}
-        <View style={styles.btnRow}>
-          <TouchableOpacity
-            style={styles.btnCancel}
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.btnCancelText}>Cancelar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.btnSave, guardando && { opacity: 0.6 }]}
-            onPress={handleGuardar}
-            disabled={guardando}
-            activeOpacity={0.7}
-          >
-            {guardando ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.btnSaveText}>Guardar</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+      {/* Buttons */}
+      <View style={styles.btnRow}>
+        <TouchableOpacity
+          style={styles.btnCancel}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.btnCancelText}>Cancelar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.btnSave, guardando && { opacity: 0.6 }]}
+          onPress={handleGuardar}
+          disabled={guardando}
+          activeOpacity={0.7}
+        >
+          {guardando ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.btnSaveText}>Guardar</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    </>
+  );
+
+  if (Platform.OS === 'web') {
+    // @ts-ignore - Using native div for better web scroll
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        backgroundColor: '#F2F2F7',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          flex: 1,
+          overflowY: 'auto',
+          paddingBottom: 40
+        }}>
+          {renderContent()}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        {renderContent()}
       </ScrollView>
     </SafeAreaView>
   );

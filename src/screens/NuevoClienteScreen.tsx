@@ -111,10 +111,9 @@ export default function NuevoClienteScreen({ navigation, route }: Props) {
     }
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.sectionHeader}>INFORMACIÓN</Text>
+  const renderContent = () => (
+    <>
+      <Text style={styles.sectionHeader}>INFORMACIÓN</Text>
 
         <View style={styles.formCard}>
           <View style={styles.inputRow}>
@@ -215,15 +214,43 @@ export default function NuevoClienteScreen({ navigation, route }: Props) {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.submitBtn}
-          onPress={handleSubmit}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.submitText}>
-            {isEditing ? 'Actualizar' : 'Crear Cliente'}
-          </Text>
-        </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.submitBtn}
+        onPress={handleSubmit}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.submitText}>
+          {isEditing ? 'Actualizar' : 'Crear Cliente'}
+        </Text>
+      </TouchableOpacity>
+    </>
+  );
+
+  if (Platform.OS === 'web') {
+    // @ts-ignore - Using native div for better web scroll
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        backgroundColor: '#F2F2F7',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          flex: 1,
+          overflowY: 'auto',
+          paddingBottom: 40
+        }}>
+          {renderContent()}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        {renderContent()}
       </ScrollView>
     </SafeAreaView>
   );

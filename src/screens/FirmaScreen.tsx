@@ -305,20 +305,33 @@ export default function FirmaScreen({ navigation, route }: Props) {
   );
 
   if (Platform.OS === 'web') {
+    // @ts-ignore - Using native div for better web scroll
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={[styles.content, isDesktopView && { maxWidth, alignSelf: 'center', width: '100%' }]}>
-          {/* @ts-ignore - div only on web */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        backgroundColor: '#F2F2F7',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          justifyContent: 'center',
+          overflow: 'hidden'
+        }}>
           <div style={{
-            flex: 1,
-            overflow: 'auto',
-            WebkitOverflowScrolling: 'touch',
+            maxWidth: isDesktopView ? maxWidth : '100%',
+            width: '100%',
+            margin: '0 auto',
+            height: '100%',
+            overflowY: 'auto',
             paddingBottom: 40
           }}>
             {renderContent()}
           </div>
-        </View>
-      </SafeAreaView>
+        </div>
+      </div>
     );
   }
 
