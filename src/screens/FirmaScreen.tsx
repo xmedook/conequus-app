@@ -215,7 +215,7 @@ export default function FirmaScreen({ navigation, route }: Props) {
       <View style={styles.cartaSection}>
         <View style={styles.carta}>
           <Text style={styles.cartaTitulo}>Carta Responsiva</Text>
-          <Text style={styles.cartaSubtitulo}>Sesión de Coaching Ecuestre</Text>
+          <Text style={styles.cartaSubtitulo}>Coaching Cuántico Asistido con Caballos</Text>
 
           <View style={styles.infoCard}>
             <View style={styles.cartaRow}>
@@ -245,13 +245,13 @@ export default function FirmaScreen({ navigation, route }: Props) {
           <Text style={styles.cartaTexto}>
             Yo, <Text style={styles.bold}>{cliente?.nombre}</Text>, en pleno uso de mis facultades,
             declaro haber recibido información completa sobre los riesgos inherentes a la
-            práctica de la equitación y el coaching ecuestre. Me comprometo a seguir las
+            práctica del coaching cuántico asistido con caballos. Me comprometo a seguir las
             instrucciones del coach en todo momento y acepto la responsabilidad de mi
             participación.
           </Text>
 
           <Text style={styles.cartaTexto}>
-            Asimismo, exonero a <Text style={styles.bold}>Conequus Coaching Ecuestre</Text> y a sus instructores
+            Asimismo, exonero a <Text style={styles.bold}>Conequus - Coaching Cuántico Asistido con Caballos</Text> y a sus instructores
             de cualquier responsabilidad derivada de accidentes o lesiones que pudieran ocurrir
             durante la sesión, siempre que se actúe conforme a los protocolos de seguridad establecidos.
           </Text>
