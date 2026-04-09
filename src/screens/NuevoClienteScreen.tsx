@@ -291,21 +291,20 @@ export default function NuevoClienteScreen({ navigation, route }: Props) {
             </View>
           </>
         )}
-    </>
-  );
 
-  const renderBottomBar = () => (
-    <View style={styles.bottomBar}>
-      <TouchableOpacity
-        style={styles.submitBtn}
-        onPress={handleSubmit}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.submitText}>
-          {isEditing ? 'Actualizar' : 'Crear Cliente'}
-        </Text>
-      </TouchableOpacity>
-    </View>
+        {/* Action button inside scroll area */}
+        <View style={styles.actionButton}>
+          <TouchableOpacity
+            style={styles.submitBtn}
+            onPress={handleSubmit}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.submitText}>
+              {isEditing ? 'Actualizar' : 'Crear Cliente'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+    </>
   );
 
   if (Platform.OS === 'web') {
@@ -321,32 +320,27 @@ export default function NuevoClienteScreen({ navigation, route }: Props) {
         <div style={{
           flex: 1,
           overflowY: 'auto',
-          paddingBottom: 20
+          paddingBottom: 40
         }}>
           {renderScrollContent()}
         </div>
-        {renderBottomBar()}
       </div>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={true}>
         {renderScrollContent()}
       </ScrollView>
-      <SafeAreaView edges={['bottom']} style={styles.bottomSafeArea}>
-        {renderBottomBar()}
-      </SafeAreaView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F7' },
-  bottomSafeArea: { backgroundColor: '#F2F2F7' },
   scrollView: { flex: 1 },
-  scrollContent: { paddingBottom: 20 },
+  scrollContent: { paddingBottom: 40 },
   sectionHeader: {
     fontSize: 13,
     fontWeight: '500',
@@ -386,13 +380,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#C6C6C8',
     marginLeft: 16,
   },
-  bottomBar: {
-    paddingTop: 12,
-    paddingBottom: 12,
+
+  // Action button (inside scroll)
+  actionButton: {
     paddingHorizontal: 20,
-    backgroundColor: '#F2F2F7',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#C6C6C8',
+    paddingTop: 24,
+    paddingBottom: 20,
+    marginBottom: 100,
   },
   submitBtn: {
     backgroundColor: '#007AFF',
