@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { Modalidad, TipoSesion } from '../types';
 import ClientSelector from '../components/ClientSelector';
@@ -25,6 +25,7 @@ interface Props {
 export default function NuevaSesionScreen({ navigation }: Props) {
   const fetchClientes = useStore((s) => s.fetchClientes);
   const crearSesion = useStore((s) => s.crearSesion);
+  const insets = useSafeAreaInsets();
 
   const [clienteId, setClienteId] = useState('');
   const [modalidad, setModalidad] = useState<Modalidad>('Presencial');
@@ -219,7 +220,7 @@ export default function NuevaSesionScreen({ navigation }: Props) {
         )}
 
         {/* Action buttons inside scroll area */}
-        <View style={styles.actionButtons}>
+        <View style={[styles.actionButtons, { marginBottom: insets.bottom + 60 }]}>
           <TouchableOpacity
             style={styles.btnCancel}
             onPress={() => navigation.goBack()}
@@ -362,7 +363,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 24,
     paddingBottom: 20,
-    marginBottom: 100,
+    // marginBottom is set dynamically using insets.bottom + 60
   },
   btnCancel: {
     flex: 1,

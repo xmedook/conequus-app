@@ -45,3 +45,6 @@ yarn-error.*
 .swarm/
 .claude/memory.db
 .claude/settings.local.json
+
+# Build info (generated during build)
+build-info.json

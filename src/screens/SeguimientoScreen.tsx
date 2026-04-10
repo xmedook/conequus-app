@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { EstadoSeguimiento } from '../types';
 
@@ -27,6 +27,7 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
   const sesion = useStore((s) => s.getSesionById(sesionId));
   const cliente = useStore((s) => (sesion ? s.getClienteById(sesion.clienteId) : undefined));
   const updateSesionSeguimiento = useStore((s) => s.updateSesionSeguimiento);
+  const insets = useSafeAreaInsets();
 
   const [estado, setEstado] = useState<EstadoSeguimiento>(
     (sesion?.estado as EstadoSeguimiento) ?? 'En proceso'
@@ -150,7 +151,7 @@ export default function SeguimientoScreen({ navigation, route }: Props) {
         </View>
 
         {/* Action buttons inside scroll area */}
-        <View style={styles.actionButtons}>
+        <View style={[styles.actionButtons, { marginBottom: insets.bottom + 60 }]}>
           <TouchableOpacity
             style={styles.btnCancel}
             onPress={() => navigation.goBack()}
@@ -281,7 +282,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 24,
     paddingBottom: 20,
-    marginBottom: 100,
+    // marginBottom is set dynamically using insets.bottom + 60
   },
   btnCancel: {
     flex: 1,

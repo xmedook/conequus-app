@@ -9,7 +9,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 
 interface Props {
@@ -29,6 +29,7 @@ export default function NuevoClienteScreen({ navigation, route }: Props) {
   const actualizarCliente = useStore((s) => s.actualizarCliente);
   const getClienteById = useStore((s) => s.getClienteById);
   const sesiones = useStore((s) => s.sesiones);
+  const insets = useSafeAreaInsets();
 
   // Get sessions for this client
   const clienteSesiones = isEditing
@@ -293,7 +294,7 @@ export default function NuevoClienteScreen({ navigation, route }: Props) {
         )}
 
         {/* Action button inside scroll area */}
-        <View style={styles.actionButton}>
+        <View style={[styles.actionButton, { marginBottom: insets.bottom + 60 }]}>
           <TouchableOpacity
             style={styles.submitBtn}
             onPress={handleSubmit}
@@ -386,7 +387,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 24,
     paddingBottom: 20,
-    marginBottom: 100,
+    // marginBottom is set dynamically using insets.bottom + 60
   },
   submitBtn: {
     backgroundColor: '#007AFF',

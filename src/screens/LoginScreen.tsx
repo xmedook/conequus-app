@@ -42,7 +42,7 @@ export default function LoginScreen() {
             <Text style={styles.logo}>C</Text>
           </View>
           <Text style={styles.brandName}>Conequus</Text>
-          <Text style={styles.brandSubtitle}>Coaching Ecuestre</Text>
+          <Text style={styles.brandSubtitle}>Coaching Cuántico Asistido con Caballos</Text>
         </View>
 
         {/* Form */}

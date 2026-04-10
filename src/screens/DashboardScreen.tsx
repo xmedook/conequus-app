@@ -12,6 +12,7 @@ import {
 import { useStore } from '../store';
 import { Sesion } from '../types';
 import { isWeb, getMaxContentWidth } from '../utils/responsive';
+import AppFooter from '../components/AppFooter';
 
 interface Props {
   navigation: any;
@@ -159,6 +160,7 @@ export default function DashboardScreen({ navigation }: Props) {
       <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.desktopScroll}>
           {content}
+          <AppFooter />
         </ScrollView>
       </SafeAreaView>
     );
@@ -167,6 +169,7 @@ export default function DashboardScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       {content}
+      <AppFooter />
     </SafeAreaView>
   );
 }

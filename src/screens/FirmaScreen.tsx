@@ -11,7 +11,7 @@ import {
   useWindowDimensions,
   KeyboardAvoidingView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import SignatureCanvas from '../components/SignatureCanvas';
 import * as Print from 'expo-print';
 import { useStore } from '../store';
@@ -31,6 +31,7 @@ export default function FirmaScreen({ navigation, route }: Props) {
   const actualizarSesion = useStore((s) => s.actualizarSesion);
 
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const isDesktopView = isWeb && width >= 768;
   const maxWidth = getMaxContentWidth();
 
@@ -286,7 +287,7 @@ export default function FirmaScreen({ navigation, route }: Props) {
       </View>
 
       {/* Action buttons inside scroll area */}
-      <View style={styles.actionButtons}>
+      <View style={[styles.actionButtons, { marginBottom: insets.bottom + 60 }]}>
         <TouchableOpacity
           style={styles.btnLimpiar}
           onPress={handleClear}
@@ -471,7 +472,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 24,
     paddingBottom: 20,
-    marginBottom: 100,
+    // marginBottom is set dynamically using insets.bottom + 60
   },
   btnLimpiar: {
     flex: 1,
